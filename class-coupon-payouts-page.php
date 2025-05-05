@@ -264,7 +264,7 @@ class CouponPayoutsPage {
                                     <td><?php echo esc_html($order['role']); ?></td>
                                     <td><?php echo esc_html($order['reward']); ?> руб.</td>
                                     <td>
-                                        <?php echo $order['payout_status'] ? __('Выплачена', 'woocommerce') : __('Нет оплаты', 'woocommerce'); ?>
+                                        <?php echo $order['payout_status'] ? __('Выплачена', 'woocommerce') : __('Не выплатили', 'woocommerce'); ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
