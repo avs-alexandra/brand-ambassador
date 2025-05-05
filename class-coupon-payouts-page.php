@@ -294,18 +294,20 @@ class CouponPayoutsPage {
 
         <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const calculateButton = document.querySelector('button[name="calculate_payout"]');
-            calculateButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                const rows = document.querySelectorAll('tbody tr');
-                rows.forEach(row => {
-                    const checkbox = row.querySelector('.row-checkbox');
-                    if (!checkbox.checked) {
-                        row.style.display = 'none';
-                    }
-                });
+    const calculateButton = document.querySelector('button[name="calculate_payout"]'); // Ищем кнопку
+    if (calculateButton) {
+        calculateButton.addEventListener('click', function (e) {
+            e.preventDefault(); // Предотвращаем стандартное поведение кнопки
+            const rows = document.querySelectorAll('tbody tr'); // Находим все строки таблицы
+            rows.forEach(row => {
+                const checkbox = row.querySelector('.row-checkbox'); // Ищем чекбокс в строке
+                if (checkbox && !checkbox.checked) {
+                    row.style.display = 'none'; // Скрываем строку, если чекбокс не отмечен
+                }
             });
         });
+    }
+});
         </script>
         <?php
     }
