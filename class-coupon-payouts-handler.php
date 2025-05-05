@@ -10,6 +10,29 @@ class CouponPayoutsHandler {
         $selected_orders = isset($_POST['payout_status']) ? $_POST['payout_status'] : []; // Выбранные заказы
         $calculation_result = null; // Результат расчёта
 
+        // Проверяем, выбраны ли заказы
+        if (empty($selected_orders)) {
+            wp_redirect(add_query_arg(['message' => 'no_orders'], wp_get_referer()));
+            exit;
+        }
+
+        // Проверяем, выбраны ли строки с разными статусами выплат
+        $statuses = [];
+        foreach ($selected_orders as $order_id => $value) {
+            $current_status = get_post_meta($order_id, '_payout_status', true);
+            $statuses[] = $current_status;
+        }
+
+        // Удаляем дубликаты из массива статусов
+        $unique_statuses = array_unique($statuses);
+
+        // Если выбранные строки имеют разные статусы
+        if (count($unique_statuses) > 1) {
+            wp_redirect(add_query_arg(['message' => 'mixed_statuses'], wp_get_referer()));
+            exit;
+        }
+
+        // Обработка действий
         if ($action_type === 'calculate_sum') {
             // Расчёт суммы выплат
             $calculation_result = $this->calculate_payout_sum($selected_orders);
@@ -24,7 +47,7 @@ class CouponPayoutsHandler {
                 if ($action_type === 'mark_paid') {
                     update_post_meta($order_id, '_payout_status', 'paid'); // Устанавливаем статус "Выплачено"
                 } elseif ($action_type === 'mark_unpaid') {
-                    delete_post_meta($order_id, '_payout_status'); // Сбрасываем статус выплаты
+                    update_post_meta($order_id, '_payout_status', 'unpaid'); // Устанавливаем статус "Не выплачено"
                 }
             }
         }
