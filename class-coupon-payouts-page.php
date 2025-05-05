@@ -1,20 +1,13 @@
 <?php
 if (!defined('ABSPATH')) exit; // Запрет прямого доступа
 
-class CouponPayoutsAdminPage {
-    public function __construct() {
-        // Добавляем страницу в меню "Маркетинг"
-        add_action('admin_menu', [$this, 'add_payouts_page']);
-        // Обрабатываем сохранение статуса выплат
-        add_action('admin_post_save_payout_status', [$this, 'save_payout_status']);
-    }
-
+class CouponPayoutsPage {
     /**
-     * Добавляет страницу "Выплаты по купонам" в меню "Маркетинг"
+     * Добавляет страницу выплат
      */
     public function add_payouts_page() {
         add_submenu_page(
-            'woocommerce-marketing', // Родительская страница (WooCommerce > Маркетинг)
+            'woocommerce-marketing', // Родительская страница
             __('Выплаты по купонам', 'woocommerce'), // Заголовок страницы
             __('Выплаты по купонам', 'woocommerce'), // Название в меню
             'manage_woocommerce', // Разрешения
@@ -30,138 +23,17 @@ class CouponPayoutsAdminPage {
         global $wpdb;
 
         $result = $wpdb->get_var("
-            SELECT YEAR(MIN(post_date)) 
-            FROM {$wpdb->posts} 
-            WHERE post_type = 'shop_order' 
+            SELECT YEAR(MIN(post_date))
+            FROM {$wpdb->posts}
+            WHERE post_type = 'shop_order'
               AND post_status IN ('wc-completed', 'wc-processing', 'wc-on-hold')
         ");
 
         return $result ? absint($result) : date('Y');
     }
 
-  /**
- * Обрабатывает сохранение статуса выплат и расчёт суммы выплат
- */
-public function save_payout_status() {
-    $action_type = isset($_POST['action_type']) ? sanitize_text_field($_POST['action_type']) : '';
-    $selected_orders = isset($_POST['payout_status']) ? $_POST['payout_status'] : [];
-    $calculation_result = null;
-
-    if ($action_type === 'calculate_sum') {
-        $calculation_result = $this->calculate_payout_sum($selected_orders);
-        set_transient('coupon_payout_calculation_result', $calculation_result, 30);
-        set_transient('coupon_payout_selected_orders', $selected_orders, 30); // Сохраняем выбранные заказы
-        set_transient('show_action_buttons', true, 30); // Устанавливаем флаг для отображения кнопок
-    } elseif (!empty($selected_orders)) {
-        foreach ($selected_orders as $order_id => $status) {
-            if ($action_type === 'mark_paid') {
-                update_post_meta($order_id, '_payout_status', 'paid');
-            } elseif ($action_type === 'mark_unpaid') {
-                delete_post_meta($order_id, '_payout_status');
-            }
-        }
-    }
-
-    $redirect_url = admin_url('admin.php?page=coupon-payouts');
-    if (!empty($_POST['filters'])) {
-        $redirect_url .= '&' . http_build_query($_POST['filters']);
-    }
-    wp_redirect($redirect_url);
-    exit;
-}
-
     /**
-     * Логика для расчёта суммы выплат
-     */
-    private function calculate_payout_sum($selected_orders) {
-        if (empty($selected_orders)) {
-            return [
-                'error' => __('Выберите хотя бы одну строку для расчёта.', 'woocommerce'),
-            ];
-        }
-
-        // Получаем текущие настройки для ролей и выплат
-        $blogger_role = get_option('blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
-        $expert_role = get_option('expert_role', 'expert'); // Роль для экспертов (по умолчанию expert)
-        $blogger_reward = get_option('blogger_reward', 450); // Выплата для блогеров (по умолчанию 450)
-        $expert_reward = get_option('expert_reward', 600); // Выплата для экспертов (по умолчанию 600)
-
-        $ambassadors = [];
-        foreach ($selected_orders as $order_id => $value) {
-            $order = wc_get_order($order_id);
-            if (!$order) continue;
-
-            $coupon_codes = $order->get_coupon_codes();
-            foreach ($coupon_codes as $coupon_code) {
-                $coupon = new WC_Coupon($coupon_code);
-                $associated_user_id = get_post_meta($coupon->get_id(), '_ambassador_user', true);
-                if (!$associated_user_id) continue;
-
-                $user = get_userdata($associated_user_id);
-                if (!$user) continue;
-
-                // Логика определения уровня пользователя
-                $role_label = 'Неизвестная роль';
-                $reward = 0;
-
-                if (in_array($expert_role, $user->roles)) {
-                    $role_label = 'Эксперт';
-                    $reward = $expert_reward;
-                } elseif (in_array($blogger_role, $user->roles)) {
-                    $role_label = 'Блогер';
-                    $reward = $blogger_reward;
-                }
-
-                // Если уровень не определён, пропускаем
-                if ($reward === 0) {
-                    continue;
-                }
-
-                if (!isset($ambassadors[$associated_user_id])) {
-                    $ambassadors[$associated_user_id] = [
-                        'user' => $user,
-                        'reward' => $reward,
-                        'orders' => 0,
-                        'level' => $role_label,
-                    ];
-                }
-                $ambassadors[$associated_user_id]['orders']++;
-            }
-        }
-
-        if (count($ambassadors) > 1) {
-            return [
-                'error' => __('Выбрано несколько Амбассадоров, пожалуйста, измените выбор.', 'woocommerce'),
-            ];
-        }
-
-        $ambassador = reset($ambassadors);
-        $user = $ambassador['user'];
-        $reward = $ambassador['reward'];
-        $orders_count = $ambassador['orders'];
-        $sum = $orders_count * $reward;
-        $user_level = $ambassador['level'];
-
-        return [
-            'message' => sprintf(
-                // Уведомление об общей выплате
-                __('Общая сумма выплаты за %s %d для %s (%s): %d*%dруб = %dруб<br>Уровень: %s<br>№ карты: %s<br>Банк: %s', 'woocommerce'),
-                date_i18n('F'),
-                date('Y'),
-                $user->display_name,
-                $user->user_email,
-                $orders_count,
-                $reward,
-                $sum,
-                $user_level,
-                get_user_meta($user->ID, 'user_numbercartbank', true),
-                get_user_meta($user->ID, 'user_bankname', true)
-            ),
-        ];
-    }
-
-    /**
-     * Рендеринг страницы "Выплаты по купонам"
+     * Рендеринг страницы выплат
      */
     public function render_payouts_page() {
         // Получаем результат расчёта из transient
@@ -172,9 +44,15 @@ public function save_payout_status() {
         $selected_orders = get_transient('coupon_payout_selected_orders');
         delete_transient('coupon_payout_selected_orders'); // Удаляем transient
 
+        // Проверяем флаг для отображения кнопок
+        $show_action_buttons = get_transient('show_action_buttons');
+        if ($show_action_buttons) {
+            delete_transient('show_action_buttons'); // Удаляем transient после отображения кнопок
+        }
+
         // Получаем роли и размеры выплат из настроек
         $blogger_role = get_option('blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
-        $expert_role = get_option('expert_role', 'customer'); // Роль для экспертов (по умолчанию customer)
+        $expert_role = get_option('expert_role', 'expert'); // Роль для экспертов (по умолчанию expert)
         $blogger_reward = get_option('blogger_reward', 450); // Выплата для блогеров (по умолчанию 450)
         $expert_reward = get_option('expert_reward', 600); // Выплата для экспертов (по умолчанию 600)
 
@@ -295,6 +173,31 @@ public function save_payout_status() {
                 <div class="notice <?php echo isset($calculation_result['error']) ? 'notice-error' : 'notice-success'; ?> is-dismissible">
                     <p><?php echo isset($calculation_result['error']) ? esc_html($calculation_result['error']) : wp_kses_post($calculation_result['message']); ?></p>
                 </div>
+
+                <!-- Кнопки "Рассчитать Амбассадора", "Отменить выплату" и "Отменить выбор" -->
+                <?php if ($show_action_buttons): ?>
+                    <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
+                        <input type="hidden" name="action" value="save_payout_status">
+                        <input type="hidden" name="filters[m]" value="<?php echo esc_attr($month); ?>">
+                        <input type="hidden" name="filters[y]" value="<?php echo esc_attr($year); ?>">
+                        <input type="hidden" name="filters[user]" value="<?php echo esc_attr($user_filter); ?>">
+                        <input type="hidden" name="filters[email_sort]" value="<?php echo esc_attr($email_sort); ?>">
+                        <input type="hidden" name="filters[level]" value="<?php echo esc_attr($level_filter); ?>">
+                        <?php wp_nonce_field('save_payout_status', 'payout_status_nonce'); ?>
+
+                        <div style="margin-top: 15px; margin-bottom: 10px;">
+                            <button type="submit" name="action_type" value="mark_paid" class="button button-primary" style="background-color: #28a745; border-color: #28a745; margin-right: 10px;">
+                                <?php _e('Рассчитать Амбассадора', 'woocommerce'); ?>
+                            </button>
+                            <button type="submit" name="action_type" value="mark_unpaid" class="button button-secondary" style="background-color: #dc3545; border-color: #dc3545; color: #fff; margin-right: 10px;">
+                                <?php _e('Отменить выплату', 'woocommerce'); ?>
+                            </button>
+                            <button type="button" class="button" style="background-color: #6c757d; border-color: #6c757d; color: #fff;" onclick="location.reload();">
+                                <?php _e('Отменить выбор', 'woocommerce'); ?>
+                            </button>
+                        </div>
+                    </form>
+                <?php endif; ?>
             <?php endif; ?>
 
             <!-- Форма фильтрации -->
@@ -303,7 +206,7 @@ public function save_payout_status() {
 
                 <label for="month"><?php _e('Месяц:', 'woocommerce'); ?></label>
                 <select id="month" name="m">
-                    <option value="0" <?php selected($month, 0); ?>><?php _e('Все месяцы', 'woocommerce'); ?></option>
+                    <option value="0"><?php _e('Все месяцы', 'woocommerce'); ?></option>
                     <?php for ($m = 1; $m <= 12; $m++): ?>
                         <option value="<?php echo esc_attr($m); ?>" <?php selected($month, $m); ?>>
                             <?php echo esc_html(date_i18n('F', mktime(0, 0, 0, $m, 10))); ?>
@@ -345,7 +248,8 @@ public function save_payout_status() {
                     <?php echo sprintf(__('Нет заказов за %s %d.', 'woocommerce'), $month > 0 ? date_i18n('F', mktime(0, 0, 0, $month, 10)) : __('все месяцы', 'woocommerce'), $year); ?>
                 </p>
             <?php else: ?>
-                <!-- Таблица -->
+
+            <!-- Таблица -->
                 <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
                     <input type="hidden" name="action" value="save_payout_status">
                     <input type="hidden" name="filters[m]" value="<?php echo esc_attr($month); ?>">
@@ -369,40 +273,44 @@ public function save_payout_status() {
                         </thead>
                         <tbody>
                             <?php foreach ($orders as $order): ?>
-                                <tr>
-                                    <td><input type="checkbox" class="row-checkbox" name="payout_status[<?php echo esc_attr($order['order_id']); ?>]" value="1" <?php echo (isset($selected_orders[$order['order_id']]) ? 'checked' : ''); ?> /></td>
+                                <tr style="background-color: <?php echo $order['payout_status'] ? '#d4edda' : '#f8d7da'; ?>; color: <?php echo $order['payout_status'] ? '#155724' : '#721c24'; ?>;">
+                                    <td>
+                                        <input type="checkbox" class="row-checkbox" name="payout_status[<?php echo esc_attr($order['order_id']); ?>]" value="1" <?php echo isset($selected_orders[$order['order_id']]) ? 'checked' : ''; ?>>
+                                    </td>
                                     <td><?php echo esc_html($order['order_id']); ?></td>
                                     <td><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($order['date']))); ?></td>
                                     <td><a href="<?php echo $order['coupon_edit_url']; ?>" target="_blank"><?php echo esc_html($order['coupon_code']); ?></a></td>
                                     <td><?php echo $order['user_display']; ?></td>
                                     <td><?php echo esc_html($order['role']); ?></td>
                                     <td><?php echo esc_html($order['reward']); ?> руб.</td>
-                                    <td style="background-color: <?php echo $order['payout_status'] ? '#d4edda' : '#f8d7da'; ?>; color: <?php echo $order['payout_status'] ? '#155724' : '#721c24'; ?>;">
+                                    <td>
                                         <?php echo $order['payout_status'] ? __('Выплачена', 'woocommerce') : __('Нет оплаты', 'woocommerce'); ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
-                    <button type="submit" name="action_type" value="mark_paid" class="button button-primary" style="background-color: #28a745; border-color: #28a745;"><?php _e('Рассчитать Амбассадора', 'woocommerce'); ?></button>
-                    <button type="submit" name="action_type" value="mark_unpaid" class="button button-secondary" style="background-color: #dc3545; border-color: #dc3545; color: #fff;"><?php _e('Отменить выплату', 'woocommerce'); ?></button>
-                <button type="submit" name="action_type" value="calculate_sum" class="button button-secondary" style="background-color: #ffc107; border-color: #ffc107; color: #000;">
-                    <?php _e('Рассчитать выплату', 'woocommerce'); ?>
+
+                    <button type="submit" name="action_type" value="calculate_sum" class="button button-secondary" style="background-color: #ffc107; border-color: #ffc107; color: #000; margin-bottom: 10px;">
+                        <?php _e('Рассчитать выплату', 'woocommerce'); ?>
+                    </button>
                 </form>
             <?php endif; ?>
         </div>
 
         <script>
-            document.getElementById('select-all').addEventListener('change', function () {
-                const isChecked = this.checked;
-                document.querySelectorAll('.row-checkbox').forEach(function (checkbox) {
-                    checkbox.checked = isChecked;
-                });
+            document.addEventListener('DOMContentLoaded', function () {
+                const selectAllCheckbox = document.getElementById('select-all');
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.addEventListener('change', function () {
+                        const isChecked = this.checked;
+                        document.querySelectorAll('.row-checkbox').forEach(function (checkbox) {
+                            checkbox.checked = isChecked;
+                        });
+                    });
+                }
             });
         </script>
         <?php
-
-        // Сбрасываем WP_Query
-        wp_reset_postdata();
     }
 }
