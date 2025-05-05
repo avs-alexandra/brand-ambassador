@@ -39,35 +39,36 @@ class CouponPayoutsAdminPage {
         return $result ? absint($result) : date('Y');
     }
 
-    /**
-     * Обрабатывает сохранение статуса выплат и расчёт суммы выплат
-     */
-    public function save_payout_status() {
-        $action_type = isset($_POST['action_type']) ? sanitize_text_field($_POST['action_type']) : '';
-        $selected_orders = isset($_POST['payout_status']) ? $_POST['payout_status'] : [];
-        $calculation_result = null;
+  /**
+ * Обрабатывает сохранение статуса выплат и расчёт суммы выплат
+ */
+public function save_payout_status() {
+    $action_type = isset($_POST['action_type']) ? sanitize_text_field($_POST['action_type']) : '';
+    $selected_orders = isset($_POST['payout_status']) ? $_POST['payout_status'] : [];
+    $calculation_result = null;
 
-        if ($action_type === 'calculate_sum') {
-            $calculation_result = $this->calculate_payout_sum($selected_orders);
-            set_transient('coupon_payout_calculation_result', $calculation_result, 30);
-            set_transient('coupon_payout_selected_orders', $selected_orders, 30); // Сохраняем выбранные заказы
-        } elseif (!empty($selected_orders)) {
-            foreach ($selected_orders as $order_id => $status) {
-                if ($action_type === 'mark_paid') {
-                    update_post_meta($order_id, '_payout_status', 'paid');
-                } elseif ($action_type === 'mark_unpaid') {
-                    delete_post_meta($order_id, '_payout_status');
-                }
+    if ($action_type === 'calculate_sum') {
+        $calculation_result = $this->calculate_payout_sum($selected_orders);
+        set_transient('coupon_payout_calculation_result', $calculation_result, 30);
+        set_transient('coupon_payout_selected_orders', $selected_orders, 30); // Сохраняем выбранные заказы
+        set_transient('show_action_buttons', true, 30); // Устанавливаем флаг для отображения кнопок
+    } elseif (!empty($selected_orders)) {
+        foreach ($selected_orders as $order_id => $status) {
+            if ($action_type === 'mark_paid') {
+                update_post_meta($order_id, '_payout_status', 'paid');
+            } elseif ($action_type === 'mark_unpaid') {
+                delete_post_meta($order_id, '_payout_status');
             }
         }
-
-        $redirect_url = admin_url('admin.php?page=coupon-payouts');
-        if (!empty($_POST['filters'])) {
-            $redirect_url .= '&' . http_build_query($_POST['filters']);
-        }
-        wp_redirect($redirect_url);
-        exit;
     }
+
+    $redirect_url = admin_url('admin.php?page=coupon-payouts');
+    if (!empty($_POST['filters'])) {
+        $redirect_url .= '&' . http_build_query($_POST['filters']);
+    }
+    wp_redirect($redirect_url);
+    exit;
+}
 
     /**
      * Логика для расчёта суммы выплат
