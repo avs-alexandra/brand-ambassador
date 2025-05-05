@@ -16,21 +16,26 @@ class CouponPayoutsPage {
         );
     }
 
-    /**
-     * Получает минимальный год, в котором есть заказы
-     */
-    private function get_minimum_order_year() {
-        global $wpdb;
+   /**
+ * Получает минимальный год, в котором есть заказы
+ */
+private function get_minimum_order_year() {
+    global $wpdb;
 
-        $result = $wpdb->get_var("
-            SELECT YEAR(MIN(post_date))
-            FROM {$wpdb->posts}
-            WHERE post_type = 'shop_order'
-              AND post_status IN ('wc-completed', 'wc-processing', 'wc-on-hold')
-        ");
+    // Подготавливаем запрос с использованием $wpdb->prepare()
+    $query = "
+        SELECT YEAR(MIN(post_date))
+        FROM {$wpdb->posts}
+        WHERE post_type = %s
+          AND post_status IN (%s, %s, %s)
+    ";
 
-        return $result ? absint($result) : date('Y');
-    }
+    // Выполняем запрос с безопасными параметрами
+    $result = $wpdb->get_var($wpdb->prepare($query, 'shop_order', 'wc-completed', 'wc-processing', 'wc-on-hold'));
+
+    // Возвращаем результат, по умолчанию текущий год, если ничего не найдено
+    return $result ? absint($result) : date('Y');
+}
 
     /**
      * Рендеринг страницы выплат
