@@ -397,30 +397,54 @@ public function render_payouts_page() {
         <?php _e('Рассчитать выплату', 'woocommerce'); ?>
     </button>
 
-        <!-- Условные кнопки -->
-         <?php if (get_transient('show_action_buttons')): ?>
-        <button type="submit" name="action_type" value="mark_paid" 
-            class="button button-primary" style="background-color: #28a745; border-color: #28a745;">
-            <?php _e('Рассчитать Амбассадора', 'woocommerce'); ?>
-        </button>
-        <button type="submit" name="action_type" value="mark_unpaid" 
-            class="button button-secondary" style="background-color: #dc3545; border-color: #dc3545; color: #fff;">
-            <?php _e('Отменить выплату', 'woocommerce'); ?>
-        </button>
-    <?php endif; ?>
-    </form>
+       <!-- Условные кнопки -->
+<?php if (get_transient('show_action_buttons')): ?>
+    <button type="submit" name="action_type" value="mark_paid" 
+        class="button button-primary" style="background-color: #28a745; border-color: #28a745;">
+        <?php _e('Рассчитать Амбассадора', 'woocommerce'); ?>
+    </button>
+    <button type="submit" name="action_type" value="mark_unpaid" 
+        class="button button-secondary" style="background-color: #dc3545; border-color: #dc3545; color: #fff;">
+        <?php _e('Отменить выплату', 'woocommerce'); ?>
+    </button>
+<?php endif; ?>
+</form>
 <?php endif; ?>
 </div>
 
-        <script>
-            document.getElementById('select-all').addEventListener('change', function () {
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectAllCheckbox = document.getElementById('select-all');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function () {
                 const isChecked = this.checked;
                 document.querySelectorAll('.row-checkbox').forEach(function (checkbox) {
                     checkbox.checked = isChecked;
                 });
             });
-        </script>
-        <?php
+        }
+
+        // Dynamic visibility logic for buttons
+        const calculateButton = document.querySelector('button[name="action_type"][value="calculate_sum"]');
+        const markPaidButton = document.querySelector('button[name="action_type"][value="mark_paid"]');
+        const markUnpaidButton = document.querySelector('button[name="action_type"][value="mark_unpaid"]');
+
+        if (markPaidButton && markUnpaidButton) {
+            markPaidButton.style.display = 'none';
+            markUnpaidButton.style.display = 'none';
+        }
+
+        if (calculateButton) {
+            calculateButton.addEventListener('click', function (event) {
+                event.preventDefault(); // Prevent form submission
+                if (markPaidButton) markPaidButton.style.display = 'inline-block';
+                if (markUnpaidButton) markUnpaidButton.style.display = 'inline-block';
+            });
+        }
+    });
+</script>
+
+<?php
 
         // Сбрасываем WP_Query
         wp_reset_postdata();
