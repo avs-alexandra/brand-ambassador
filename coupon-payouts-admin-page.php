@@ -39,35 +39,40 @@ class CouponPayoutsAdminPage {
         return $result ? absint($result) : date('Y');
     }
 
-  /**
+ /**
  * Обрабатывает сохранение статуса выплат и расчёт суммы выплат
  */
 public function save_payout_status() {
-    $action_type = isset($_POST['action_type']) ? sanitize_text_field($_POST['action_type']) : '';
-    $selected_orders = isset($_POST['payout_status']) ? $_POST['payout_status'] : [];
-    $calculation_result = null;
+    $action_type = isset($_POST['action_type']) ? sanitize_text_field($_POST['action_type']) : ''; // Тип действия
+    $selected_orders = isset($_POST['payout_status']) ? $_POST['payout_status'] : []; // Выбранные заказы
+    $calculation_result = null; // Результат расчёта
 
     if ($action_type === 'calculate_sum') {
+        // Расчёт суммы выплат
         $calculation_result = $this->calculate_payout_sum($selected_orders);
-        set_transient('coupon_payout_calculation_result', $calculation_result, 30);
-        set_transient('coupon_payout_selected_orders', $selected_orders, 30); // Сохраняем выбранные заказы
-        set_transient('show_action_buttons', true, 30); // Устанавливаем флаг для отображения кнопок
+
+        // Сохраняем результат расчёта и выбранные заказы во временные данные
+        set_transient('coupon_payout_calculation_result', $calculation_result, 30); // Результат расчёта
+        set_transient('coupon_payout_selected_orders', $selected_orders, 30); // Выбранные заказы
+        set_transient('show_action_buttons', true, 30); // Флаг для отображения кнопок "Рассчитать Амбассадора" и "Отменить выплату"
     } elseif (!empty($selected_orders)) {
+        // Обработка статуса выплат для выбранных заказов
         foreach ($selected_orders as $order_id => $status) {
             if ($action_type === 'mark_paid') {
-                update_post_meta($order_id, '_payout_status', 'paid');
+                update_post_meta($order_id, '_payout_status', 'paid'); // Устанавливаем статус "Выплачено"
             } elseif ($action_type === 'mark_unpaid') {
-                delete_post_meta($order_id, '_payout_status');
+                delete_post_meta($order_id, '_payout_status'); // Сбрасываем статус выплаты
             }
         }
     }
 
+    // Перенаправление обратно на страницу выплат с сохранением фильтров
     $redirect_url = admin_url('admin.php?page=coupon-payouts');
     if (!empty($_POST['filters'])) {
         $redirect_url .= '&' . http_build_query($_POST['filters']);
     }
-    wp_redirect($redirect_url);
-    exit;
+    wp_redirect($redirect_url); // Перенаправление
+    exit; // Завершаем выполнение
 }
 
     /**
@@ -164,6 +169,7 @@ public function save_payout_status() {
      * Рендеринг страницы "Выплаты по купонам"
      */
 public function render_payouts_page() {
+    
     // Получаем результат расчёта из transient
     $calculation_result = get_transient('coupon_payout_calculation_result');
     delete_transient('coupon_payout_calculation_result'); // Удаляем transient, чтобы уведомление не отображалось повторно
@@ -171,6 +177,12 @@ public function render_payouts_page() {
     // Получаем выбранные заказы из transient
     $selected_orders = get_transient('coupon_payout_selected_orders');
     delete_transient('coupon_payout_selected_orders'); // Удаляем transient
+
+    // Определяем, показывать ли кнопки "Рассчитать Амбассадора" и "Отменить выплату"
+    $show_action_buttons = get_transient('show_action_buttons');
+    if ($show_action_buttons) {
+        delete_transient('show_action_buttons'); // Удаляем transient после отображения кнопок
+    }
 
     // Получаем роли и размеры выплат из настроек
     $blogger_role = get_option('blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
@@ -393,9 +405,9 @@ public function render_payouts_page() {
 
         <!-- Кнопки -->
        <button type="submit" name="action_type" value="calculate_sum" class="button button-secondary" 
-        style="background-color: #ffc107; border-color: #ffc107; color: #000;">
-        <?php _e('Рассчитать выплату', 'woocommerce'); ?>
-    </button>
+    style="background-color: #ffc107; border-color: #ffc107; color: #000;">
+    <?php _e('Рассчитать выплату', 'woocommerce'); ?>
+</button>
 
        <!-- Условные кнопки -->
 <?php if (get_transient('show_action_buttons')): ?>
@@ -407,6 +419,10 @@ public function render_payouts_page() {
         class="button button-secondary" style="background-color: #dc3545; border-color: #dc3545; color: #fff;">
         <?php _e('Отменить выплату', 'woocommerce'); ?>
     </button>
+    <?php 
+        // Удаляем transient, чтобы кнопки не отображались повторно без нового расчёта
+        delete_transient('show_action_buttons'); 
+    ?>
 <?php endif; ?>
 </form>
 <?php endif; ?>
@@ -414,17 +430,6 @@ public function render_payouts_page() {
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const selectAllCheckbox = document.getElementById('select-all');
-        if (selectAllCheckbox) {
-            selectAllCheckbox.addEventListener('change', function () {
-                const isChecked = this.checked;
-                document.querySelectorAll('.row-checkbox').forEach(function (checkbox) {
-                    checkbox.checked = isChecked;
-                });
-            });
-        }
-
-        // Dynamic visibility logic for buttons
         const calculateButton = document.querySelector('button[name="action_type"][value="calculate_sum"]');
         const markPaidButton = document.querySelector('button[name="action_type"][value="mark_paid"]');
         const markUnpaidButton = document.querySelector('button[name="action_type"][value="mark_unpaid"]');
@@ -434,13 +439,11 @@ public function render_payouts_page() {
             markUnpaidButton.style.display = 'none';
         }
 
-        if (calculateButton) {
-            calculateButton.addEventListener('click', function (event) {
-                event.preventDefault(); // Prevent form submission
-                if (markPaidButton) markPaidButton.style.display = 'inline-block';
-                if (markUnpaidButton) markUnpaidButton.style.display = 'inline-block';
-            });
-        }
+        calculateButton.addEventListener('click', function (event) {
+            event.preventDefault(); // Предотвращаем отправку формы
+            if (markPaidButton) markPaidButton.style.display = 'inline-block';
+            if (markUnpaidButton) markUnpaidButton.style.display = 'inline-block';
+        });
     });
 </script>
 
