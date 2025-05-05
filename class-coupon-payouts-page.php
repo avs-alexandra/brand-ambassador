@@ -169,35 +169,15 @@ class CouponPayoutsPage {
         ?>
         <div class="wrap">
             <h1 class="wp-heading-inline"><?php _e('Выплаты по купонам', 'woocommerce'); ?></h1>
+            <?php if (isset($_GET['message']) && $_GET['message'] === 'mixed_statuses'): ?>
+            <div class="notice notice-error is-dismissible">
+                <p><?php _e('Выбраны строки с разными статусами выплат. Пожалуйста, измените выбор.', 'woocommerce'); ?></p>
+            </div>
+        <?php endif; ?>
             <?php if ($calculation_result): ?>
                 <div class="notice <?php echo isset($calculation_result['error']) ? 'notice-error' : 'notice-success'; ?> is-dismissible">
                     <p><?php echo isset($calculation_result['error']) ? esc_html($calculation_result['error']) : wp_kses_post($calculation_result['message']); ?></p>
                 </div>
-
-                <!-- Кнопки "Рассчитать Амбассадора", "Отменить выплату" и "Отменить выбор" -->
-                <?php if ($show_action_buttons): ?>
-                    <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
-                        <input type="hidden" name="action" value="save_payout_status">
-                        <input type="hidden" name="filters[m]" value="<?php echo esc_attr($month); ?>">
-                        <input type="hidden" name="filters[y]" value="<?php echo esc_attr($year); ?>">
-                        <input type="hidden" name="filters[user]" value="<?php echo esc_attr($user_filter); ?>">
-                        <input type="hidden" name="filters[email_sort]" value="<?php echo esc_attr($email_sort); ?>">
-                        <input type="hidden" name="filters[level]" value="<?php echo esc_attr($level_filter); ?>">
-                        <?php wp_nonce_field('save_payout_status', 'payout_status_nonce'); ?>
-
-                        <div style="margin-top: 15px; margin-bottom: 10px;">
-                            <button type="submit" name="action_type" value="mark_paid" class="button button-primary" style="background-color: #28a745; border-color: #28a745; margin-right: 10px;">
-                                <?php _e('Рассчитать Амбассадора', 'woocommerce'); ?>
-                            </button>
-                            <button type="submit" name="action_type" value="mark_unpaid" class="button button-secondary" style="background-color: #dc3545; border-color: #dc3545; color: #fff; margin-right: 10px;">
-                                <?php _e('Отменить выплату', 'woocommerce'); ?>
-                            </button>
-                            <button type="button" class="button" style="background-color: #6c757d; border-color: #6c757d; color: #fff;" onclick="location.reload();">
-                                <?php _e('Отменить выбор', 'woocommerce'); ?>
-                            </button>
-                        </div>
-                    </form>
-                <?php endif; ?>
             <?php endif; ?>
 
             <!-- Форма фильтрации -->
@@ -241,14 +221,14 @@ class CouponPayoutsPage {
 
                 <button type="submit" class="button"><?php _e('Применить', 'woocommerce'); ?></button>
             </form>
-
+            
             <!-- Проверяем, есть ли заказы -->
             <?php if (empty($orders)): ?>
                 <p style="margin-top: 20px; font-size: 16px; color: #555;">
                     <?php echo sprintf(__('Нет заказов за %s %d.', 'woocommerce'), $month > 0 ? date_i18n('F', mktime(0, 0, 0, $month, 10)) : __('все месяцы', 'woocommerce'), $year); ?>
                 </p>
             <?php else: ?>
-
+            
             <!-- Таблица -->
                 <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
                     <input type="hidden" name="action" value="save_payout_status">
@@ -258,7 +238,7 @@ class CouponPayoutsPage {
                     <input type="hidden" name="filters[email_sort]" value="<?php echo esc_attr($email_sort); ?>">
                     <input type="hidden" name="filters[level]" value="<?php echo esc_attr($level_filter); ?>">
                     <?php wp_nonce_field('save_payout_status', 'payout_status_nonce'); ?>
-                    <table class="wp-list-table widefat fixed striped" style="margin-top: 20px;">
+                     <table class="wp-list-table widefat fixed striped" style="margin-top: 20px;">
                         <thead>
                             <tr>
                                 <th><input type="checkbox" id="select-all"></th>
@@ -271,7 +251,7 @@ class CouponPayoutsPage {
                                 <th><?php _e('Статус выплаты', 'woocommerce'); ?></th>
                             </tr>
                         </thead>
-                        <tbody>
+                       <tbody>
                             <?php foreach ($orders as $order): ?>
                                 <tr style="background-color: <?php echo $order['payout_status'] ? '#d4edda' : '#f8d7da'; ?>; color: <?php echo $order['payout_status'] ? '#155724' : '#721c24'; ?>;">
                                     <td>
@@ -291,9 +271,18 @@ class CouponPayoutsPage {
                         </tbody>
                     </table>
 
-                    <button type="submit" name="action_type" value="calculate_sum" class="button button-secondary" style="background-color: #ffc107; border-color: #ffc107; color: #000; margin-bottom: 10px;">
+                    <button type="submit" name="action_type" value="calculate_sum" class="button button-secondary" style="background-color: #ffc107; border-color: #ffc107; color: #000;">
                         <?php _e('Рассчитать выплату', 'woocommerce'); ?>
                     </button>
+
+                    <?php if ($show_action_buttons): ?>
+                        <button type="submit" name="action_type" value="mark_paid" class="button button-primary" style="background-color: #28a745; border-color: #28a745;">
+                            <?php _e('Рассчитать Амбассадора', 'woocommerce'); ?>
+                        </button>
+                        <button type="submit" name="action_type" value="mark_unpaid" class="button button-secondary" style="background-color: #dc3545; border-color: #dc3545; color: #fff;">
+                            <?php _e('Отменить выплату', 'woocommerce'); ?>
+                        </button>
+                    <?php endif; ?>
                 </form>
             <?php endif; ?>
         </div>
