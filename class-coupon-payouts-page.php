@@ -26,7 +26,7 @@ class CouponPayoutsPage {
             SELECT YEAR(MIN(post_date))
             FROM {$wpdb->posts}
             WHERE post_type = 'shop_order'
-              AND post_status IN ('wc-completed')
+              AND post_status IN ('wc-completed', 'wc-processing', 'wc-on-hold')
         ");
 
         return $result ? absint($result) : date('Y');
@@ -65,6 +65,12 @@ class CouponPayoutsPage {
 
         // Получаем минимальный год для фильтра
         $min_year = $this->get_minimum_order_year();
+
+        // Проверяем, корректны ли значения года
+        if ($year < $min_year || $year > date('Y')) {
+            echo '<div class="notice notice-error"><p>' . __('Ошибка: Неверный год.', 'woocommerce') . '</p></div>';
+            return;
+        }
 
         // Параметры для WP_Query
         $args = [
@@ -293,21 +299,17 @@ class CouponPayoutsPage {
         </div>
 
         <script>
-        document.addEventListener('DOMContentLoaded', function () {
-    const calculateButton = document.querySelector('button[name="calculate_payout"]'); // Ищем кнопку
-    if (calculateButton) {
-        calculateButton.addEventListener('click', function (e) {
-            e.preventDefault(); // Предотвращаем стандартное поведение кнопки
-            const rows = document.querySelectorAll('tbody tr'); // Находим все строки таблицы
-            rows.forEach(row => {
-                const checkbox = row.querySelector('.row-checkbox'); // Ищем чекбокс в строке
-                if (checkbox && !checkbox.checked) {
-                    row.style.display = 'none'; // Скрываем строку, если чекбокс не отмечен
+            document.addEventListener('DOMContentLoaded', function () {
+                const selectAllCheckbox = document.getElementById('select-all');
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.addEventListener('change', function () {
+                        const isChecked = this.checked;
+                        document.querySelectorAll('.row-checkbox').forEach(function (checkbox) {
+                            checkbox.checked = isChecked;
+                        });
+                    });
                 }
             });
-        });
-    }
-});
         </script>
         <?php
     }
