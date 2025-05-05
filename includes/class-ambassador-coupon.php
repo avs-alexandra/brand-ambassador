@@ -259,8 +259,24 @@ public function enqueue_select2_scripts($hook) {
         return;
     }
 
+    // Подключаем Select2
     wp_enqueue_script('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js', ['jquery'], null, true);
     wp_enqueue_style('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css');
+
+    // Подключаем ваш JavaScript файл
+    wp_enqueue_script(
+        'wc-user-search',
+        plugins_url('assets/js/wc-user-search.js', __FILE__),
+        ['jquery', 'select2'],
+        null,
+        true
+    );
+
+    // Передаём данные в скрипт
+    wp_localize_script('wc-user-search', 'userSearchData', [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('search_users_by_email'),
+    ]);
 }
 
 /**
