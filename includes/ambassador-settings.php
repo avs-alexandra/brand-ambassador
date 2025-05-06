@@ -7,6 +7,8 @@ class AmbassadorSettingsPage {
         add_action('admin_menu', [$this, 'add_settings_page']);
         // Регистрируем настройки
         add_action('admin_init', [$this, 'register_settings']);
+        // Регистрируем хук для удаления данных при удалении плагина
+        register_uninstall_hook(__FILE__, [__CLASS__, 'delete_plugin_data']);
     }
 
     /**
@@ -34,6 +36,8 @@ class AmbassadorSettingsPage {
         // Регистрируем опцию для выплат
         register_setting('ambassador_settings', 'blogger_reward');
         register_setting('ambassador_settings', 'expert_reward');
+        // Регистрируем опцию для удаления метаполей
+        register_setting('ambassador_settings', 'ambassador_delete_meta');
     }
 
     /**
@@ -47,6 +51,7 @@ class AmbassadorSettingsPage {
         $expert_role = get_option('expert_role', 'customer');
         $blogger_reward = get_option('blogger_reward', 450);
         $expert_reward = get_option('expert_reward', 600);
+        $delete_meta = get_option('ambassador_delete_meta', 0); // По умолчанию 0 (не удалять)
         ?>
         <div class="wrap">
             <h1><?php _e('Настройки Амбассадора бренда', 'woocommerce'); ?></h1>
@@ -90,10 +95,33 @@ class AmbassadorSettingsPage {
                             <input type="number" name="expert_reward" value="<?php echo esc_attr($expert_reward); ?>" min="0" />
                         </td>
                     </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Удалить метаполя при удалении плагина', 'woocommerce'); ?></th>
+                        <td>
+                            <input type="checkbox" name="ambassador_delete_meta" value="1" <?php checked(1, $delete_meta, true); ?> />
+                            <label for="ambassador_delete_meta"><?php _e('Удалять все метаполя, созданные плагином', 'woocommerce'); ?></label>
+                        </td>
+                    </tr>
                 </table>
                 <?php submit_button(); ?>
             </form>
         </div>
         <?php
+    }
+
+    /**
+     * Удаление данных плагина
+     */
+    public static function delete_plugin_data() {
+        if (get_option('ambassador_delete_meta') == 1) {
+            global $wpdb;
+
+            // Удаление метаполей
+            $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE '_ambassador_%'");
+            $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key LIKE '_user_%'");
+
+            // Удаление опции
+            delete_option('ambassador_delete_meta');
+        }
     }
 }
