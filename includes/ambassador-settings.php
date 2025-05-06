@@ -91,21 +91,18 @@ class AmbassadorSettingsPage {
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row"><?php _e('Удалить метаполя при удалении плагина', 'woocommerce'); ?></th>
+                        <th scope="row"><?php _e('Перед удалением плагина', 'woocommerce'); ?></th>
                         <td>
                             <input type="checkbox" name="ambassador_delete_meta" value="1" <?php checked(1, $delete_meta, true); ?> />
                             <label for="ambassador_delete_meta">
-                                <?php _e('Удалять все метаполя, созданные плагином', 'woocommerce'); ?>
-                            </label>
-                            <p style="margin-top: 10px; color: #555;">
-                                <?php _e('Будут удалены следующие метаполя:', 'woocommerce'); ?>
+                                <?php _e('Удалить метаполя, которые создал плагин', 'woocommerce'); ?>
                                 <ul>
                                     <li><strong>_ambassador_user</strong>: Связь между купоном и пользователем (ID пользователя).</li>
                                     <li><strong>only_first_order</strong>: Чекбокс в купоне, который действует только для первого заказа.</li>
                                     <li><strong>_user_coupon</strong>: Связь между пользователем и купоном (ID купона).</li>
                                     <li><strong>user_numbercartbank</strong>: Номер банковской карты пользователя.</li>
                                     <li><strong>user_bankname</strong>: Название банка пользователя.</li>
-                                    <li><strong>_payout_status</strong>: Статус выплаты (например, "paid" или "unpaid").</li>
+                                    <li><strong>_payout_status</strong>: Статус выплаты.</li>
                                 </ul>
                             </p>
                         </td>
@@ -120,16 +117,20 @@ class AmbassadorSettingsPage {
     /**
      * Удаление данных плагина
      */
-    public static function delete_plugin_data() {
-        if (get_option('ambassador_delete_meta') == 1) {
-            global $wpdb;
+   public static function delete_plugin_data() {
+    if (get_option('ambassador_delete_meta') == 1) {
+        global $wpdb;
 
-            // Удаление метаполей
-            $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE meta_key IN ('_ambassador_user', 'only_first_order', '_payout_status')");
-            $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('_user_coupon', 'user_numbercartbank', 'user_bankname')");
+        // Удаление метаполей
+        $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE meta_key IN ('_ambassador_user', 'only_first_order', '_payout_status')");
+        $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('_user_coupon', 'user_numbercartbank', 'user_bankname')");
 
-            // Удаление опции
-            delete_option('ambassador_delete_meta');
-        }
+        // Удаление опций
+        delete_option('ambassador_delete_meta');
+        delete_option('blogger_role');
+        delete_option('expert_role');
+        delete_option('blogger_reward');
+        delete_option('expert_reward');
     }
+  }
 }
