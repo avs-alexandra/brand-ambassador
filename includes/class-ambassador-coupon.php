@@ -1,32 +1,32 @@
 <?php
 if (!defined('ABSPATH')) exit; // Запрет прямого доступа
 class AmbassadorCouponProgram {
-    public function __construct() {
+   public function __construct() {
     // Функционал амбассадора
     add_action('woocommerce_coupon_options', [$this, 'add_user_field_to_coupon']);
     add_action('woocommerce_coupon_options_save', [$this, 'save_user_field_to_coupon']);
     add_action('show_user_profile', [$this, 'show_user_coupon']);
     add_action('edit_user_profile', [$this, 'show_user_coupon']);
 
-    // Подключение стилей и скриптов для Select2
-    add_action('admin_enqueue_scripts', [$this, 'enqueue_select2_scripts']);
+    // Подключение стилей и скриптов
+    add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
 
     // AJAX обработчики
     add_action('wp_ajax_search_users_by_email', [$this, 'search_users_by_email']);
     add_action('wp_ajax_unlink_user_from_coupon', [$this, 'unlink_user_from_coupon']);
 
-    // Добавление нового столбца в таблицу купонов
+    // Добавление столбца "Амбассадор" в таблицу купонов
     add_filter('manage_edit-shop_coupon_columns', [$this, 'add_user_column_to_coupon_table']);
     add_action('manage_shop_coupon_posts_custom_column', [$this, 'render_user_column_in_coupon_table'], 10, 2);
-    
-    // Отображение связанного пользователя рядом с купоном в заказе
+
+    // Отображение связанных данных в заказе
     add_action('woocommerce_admin_order_data_after_order_details', [$this, 'display_associated_user_in_order']);
-    
-    //Добавить метаполя пользователю номер банковской карты и наименование банка   
+
+    // Метаполя для банковских реквизитов
     add_action('personal_options_update', [$this, 'save_user_meta_fields']);
     add_action('edit_user_profile_update', [$this, 'save_user_meta_fields']);
 
-    // Запретить пользователю применять свой купон
+    // Запрет на использование собственного купона
     add_filter('woocommerce_coupon_is_valid', [$this, 'restrict_user_from_using_own_coupon'], 10, 3);
 }
 
@@ -96,49 +96,7 @@ class AmbassadorCouponProgram {
                 <?php endif; ?>
             </p>
         </div>
-        <script>
-            jQuery(document).ready(function($) {
-                // Инициализация Select2
-                $('#ambassador_user').select2({
-                    ajax: {
-                        url: ajaxurl,
-                        dataType: 'json',
-                        delay: 250,
-                        data: function(params) {
-                            return {
-                                action: 'search_users_by_email',
-                                term: params.term,
-                                nonce: '<?php echo wp_create_nonce('search_users_by_email'); ?>'
-                            };
-                        },
-                        processResults: function(data) {
-                            return {
-                                results: data.results
-                            };
-                        },
-                        cache: true
-                    },
-                    minimumInputLength: 2
-                });
-
-                // Кнопка "Отвязать пользователя"
-                $('.unlink-user-button').on('click', function() {
-                    var couponId = $(this).data('coupon-id');
-                    $.post(ajaxurl, {
-                        action: 'unlink_user_from_coupon',
-                        coupon_id: couponId,
-                        nonce: '<?php echo wp_create_nonce('unlink_user_nonce'); ?>'
-                    }, function(response) {
-                        if (response.success) {
-                            alert('<?php _e('Пользователь отвязан от купона.', 'woocommerce'); ?>');
-                            location.reload();
-                        } else {
-                            alert('<?php _e('Ошибка при отвязке пользователя.', 'woocommerce'); ?>');
-                        }
-                    });
-                });
-            });
-        </script>
+        
         <?php
     }
 
@@ -246,38 +204,6 @@ public function save_user_meta_fields($user_id) {
     }
 }
 
-/**
- * Подключение стилей и скриптов для Select2
- */
-public function enqueue_select2_scripts($hook) {
-    if (!in_array($hook, ['post.php', 'post-new.php'])) {
-        return;
-    }
-
-    $post_type = get_post_type();
-    if ($post_type !== 'shop_coupon') {
-        return;
-    }
-
-    // Подключаем Select2
-    wp_enqueue_script('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js', ['jquery'], null, true);
-    wp_enqueue_style('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css');
-
-    // Подключаем ваш JavaScript файл
-    wp_enqueue_script(
-        'wc-user-search',
-        plugins_url('assets/js/wc-user-search.js', __FILE__),
-        ['jquery', 'select2'],
-        null,
-        true
-    );
-
-    // Передаём данные в скрипт
-    wp_localize_script('wc-user-search', 'userSearchData', [
-        'ajax_url' => admin_url('admin-ajax.php'),
-        'nonce' => wp_create_nonce('search_users_by_email'),
-    ]);
-}
 
 /**
  * AJAX: Поиск пользователей по email с фильтром по ролям и исключением пользователей с уже связанным купоном
@@ -370,6 +296,38 @@ public function restrict_user_from_using_own_coupon($valid, $coupon, $discount) 
     return $valid;
 }
 
+
+/**
+ * Подключение JavaScript и передача данных в скрипт
+ */
+public function enqueue_scripts($hook) {
+    if ($hook === 'post.php' || $hook === 'post-new.php') { // Подключаем только на страницах редактирования купонов
+        $post_type = get_post_type();
+        if ($post_type === 'shop_coupon') {
+            // Подключаем Select2
+            wp_enqueue_script('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js', ['jquery'], null, true);
+            wp_enqueue_style('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css');
+
+            // Подключаем ваш JavaScript файл
+            wp_enqueue_script(
+                'ambassador-user-script',
+                plugins_url('assets/js/ambassador-user.js', __FILE__),
+                ['jquery', 'select2'], // Зависимости
+                null,
+                true // Подключить в футере
+            );
+
+            // Передаем данные в JavaScript
+            wp_localize_script('ambassador-user-script', 'ambassadorUserData', [
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce_search' => wp_create_nonce('search_users_by_email'),
+                'nonce_unlink' => wp_create_nonce('unlink_user_nonce'),
+                'success_message' => __('Пользователь отвязан от купона.', 'woocommerce'),
+                'error_message' => __('Ошибка при отвязке пользователя.', 'woocommerce'),
+            ]);
+        }
+    }
+}
 
     /**
      * Отображение связанного пользователя рядом с купоном в интерфейсе редактирования заказа
