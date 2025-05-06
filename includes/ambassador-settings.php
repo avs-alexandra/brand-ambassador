@@ -29,14 +29,10 @@ class AmbassadorSettingsPage {
      * Регистрируем настройки
      */
     public function register_settings() {
-        // Регистрируем опцию для роли Блогера
         register_setting('ambassador_settings', 'blogger_role');
-        // Регистрируем опцию для роли Эксперта
         register_setting('ambassador_settings', 'expert_role');
-        // Регистрируем опцию для выплат
         register_setting('ambassador_settings', 'blogger_reward');
         register_setting('ambassador_settings', 'expert_reward');
-        // Регистрируем опцию для удаления метаполей
         register_setting('ambassador_settings', 'ambassador_delete_meta');
     }
 
@@ -44,14 +40,13 @@ class AmbassadorSettingsPage {
      * Рендеринг страницы настроек
      */
     public function render_settings_page() {
-        // Получаем список всех доступных ролей
         global $wp_roles;
         $roles = $wp_roles->roles;
         $blogger_role = get_option('blogger_role', 'customer');
         $expert_role = get_option('expert_role', 'customer');
         $blogger_reward = get_option('blogger_reward', 450);
         $expert_reward = get_option('expert_reward', 600);
-        $delete_meta = get_option('ambassador_delete_meta', 0); // По умолчанию 0 (не удалять)
+        $delete_meta = get_option('ambassador_delete_meta', 0);
         ?>
         <div class="wrap">
             <h1><?php _e('Настройки Амбассадора бренда', 'woocommerce'); ?></h1>
@@ -99,7 +94,20 @@ class AmbassadorSettingsPage {
                         <th scope="row"><?php _e('Удалить метаполя при удалении плагина', 'woocommerce'); ?></th>
                         <td>
                             <input type="checkbox" name="ambassador_delete_meta" value="1" <?php checked(1, $delete_meta, true); ?> />
-                            <label for="ambassador_delete_meta"><?php _e('Удалять все метаполя, созданные плагином', 'woocommerce'); ?></label>
+                            <label for="ambassador_delete_meta">
+                                <?php _e('Удалять все метаполя, созданные плагином', 'woocommerce'); ?>
+                            </label>
+                            <p style="margin-top: 10px; color: #555;">
+                                <?php _e('Будут удалены следующие метаполя:', 'woocommerce'); ?>
+                                <ul>
+                                    <li><strong>_ambassador_user</strong>: Связь между купоном и пользователем (ID пользователя).</li>
+                                    <li><strong>only_first_order</strong>: Чекбокс в купоне, который действует только для первого заказа.</li>
+                                    <li><strong>_user_coupon</strong>: Связь между пользователем и купоном (ID купона).</li>
+                                    <li><strong>user_numbercartbank</strong>: Номер банковской карты пользователя.</li>
+                                    <li><strong>user_bankname</strong>: Название банка пользователя.</li>
+                                    <li><strong>_payout_status</strong>: Статус выплаты (например, "paid" или "unpaid").</li>
+                                </ul>
+                            </p>
                         </td>
                     </tr>
                 </table>
@@ -117,8 +125,8 @@ class AmbassadorSettingsPage {
             global $wpdb;
 
             // Удаление метаполей
-            $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE '_ambassador_%'");
-            $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key LIKE '_user_%'");
+            $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE meta_key IN ('_ambassador_user', 'only_first_order', '_payout_status')");
+            $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('_user_coupon', 'user_numbercartbank', 'user_bankname')");
 
             // Удаление опции
             delete_option('ambassador_delete_meta');
