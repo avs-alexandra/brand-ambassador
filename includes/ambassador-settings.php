@@ -34,6 +34,7 @@ class AmbassadorSettingsPage {
         register_setting('ambassador_settings', 'blogger_reward');
         register_setting('ambassador_settings', 'expert_reward');
         register_setting('ambassador_settings', 'ambassador_delete_meta');
+        register_setting('ambassador_settings', 'ambassador_email_template'); // Новый параметр для текста письма
     }
 
     /**
@@ -47,6 +48,7 @@ class AmbassadorSettingsPage {
         $blogger_reward = get_option('blogger_reward', 450);
         $expert_reward = get_option('expert_reward', 600);
         $delete_meta = get_option('ambassador_delete_meta', 0);
+        $email_template = get_option('ambassador_email_template', 'Здравствуйте, [ambassador]! Ваш купон "[coupon]" был использован для заказа №[order_id].');
         ?>
         <div class="wrap">
             <h1><?php _e('Настройки Амбассадора бренда', 'woocommerce'); ?></h1>
@@ -91,6 +93,18 @@ class AmbassadorSettingsPage {
                         </td>
                     </tr>
                     <tr valign="top">
+                        <th scope="row"><?php _e('Текст письма амбассадору', 'woocommerce'); ?></th>
+                        <td>
+                            <textarea
+                                name="ambassador_email_template"
+                                rows="5"
+                                cols="50"
+                                class="large-text"
+                            ><?php echo esc_textarea($email_template); ?></textarea>
+                            <p class="description"><?php _e('Используйте плейсхолдеры [ambassador] для имени амбассадора, [coupon] для купона и [order_id] для номера заказа.', 'woocommerce'); ?></p>
+                        </td>
+                    </tr>
+                    <tr valign="top">
                         <th scope="row"><?php _e('Перед удалением плагина', 'woocommerce'); ?></th>
                         <td>
                             <input type="checkbox" name="ambassador_delete_meta" value="1" <?php checked(1, $delete_meta, true); ?> />
@@ -117,20 +131,21 @@ class AmbassadorSettingsPage {
     /**
      * Удаление данных плагина
      */
-   public static function delete_plugin_data() {
-    if (get_option('ambassador_delete_meta') == 1) {
-        global $wpdb;
+    public static function delete_plugin_data() {
+        if (get_option('ambassador_delete_meta') == 1) {
+            global $wpdb;
 
-        // Удаление метаполей
-        $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE meta_key IN ('_ambassador_user', 'only_first_order', '_payout_status')");
-        $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('_user_coupon', 'user_numbercartbank', 'user_bankname')");
+            // Удаление метаполей
+            $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE meta_key IN ('_ambassador_user', 'only_first_order', '_payout_status')");
+            $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('_user_coupon', 'user_numbercartbank', 'user_bankname')");
 
-        // Удаление опций
-        delete_option('ambassador_delete_meta');
-        delete_option('blogger_role');
-        delete_option('expert_role');
-        delete_option('blogger_reward');
-        delete_option('expert_reward');
+            // Удаление опций
+            delete_option('ambassador_delete_meta');
+            delete_option('blogger_role');
+            delete_option('expert_role');
+            delete_option('blogger_reward');
+            delete_option('expert_reward');
+            delete_option('ambassador_email_template'); // Удаление нового параметра
+        }
     }
-  }
 }
