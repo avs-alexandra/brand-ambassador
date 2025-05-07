@@ -17,8 +17,8 @@ function apply_coupon_only_first_order_with_removal($discount, $discounting_amou
             WC()->cart->remove_coupon($coupon->get_code());
 
             // Выводим предупреждение для пользователя
-            if (!wc_has_notice(__('Купон действует только на первый заказ.', 'woocommerce'), 'error')) {
-                wc_add_notice(__('Купон действует только на первый заказ.', 'woocommerce'), 'error');
+            if (!wc_has_notice(__('Купон действует только на первый заказ.', 'brand-ambassador'), 'error')) {
+                wc_add_notice(__('Купон действует только на первый заказ.', 'brand-ambassador'), 'error');
             }
 
             return $discount; // Возвращаем текущую скидку, так как купон будет удалён
@@ -31,8 +31,8 @@ add_action('woocommerce_coupon_options', 'add_coupon_option_first_order_checkbox
 function add_coupon_option_first_order_checkbox() {
     woocommerce_wp_checkbox([
         'id' => 'only_first_order',
-        'label' => __('Только для первого заказа', 'woocommerce'),
-        'description' => __('Применять купон только к первому заказу пользователя.', 'woocommerce'),
+        'label' => __('Только для первого заказа', 'brand-ambassador'),
+        'description' => __('Применять купон только к первому заказу пользователя.', 'brand-ambassador'),
     ]);
 }
 //Сохраняем значение галочки "Только для первого заказа".
@@ -50,19 +50,19 @@ function save_coupon_option_first_order_checkbox($post_id) {
 function get_user_coupon_name() {
     $user_id = get_current_user_id(); // Получить ID текущего пользователя
     if (!$user_id) {
-        return __('Пользователь не авторизован.', 'woocommerce');
+        return __('Пользователь не авторизован.', 'brand-ambassador');
     }
 
     // Получить ID связанного купона из метаполя _user_coupon
     $coupon_id = get_user_meta($user_id, '_user_coupon', true);
     if (!$coupon_id) {
-        return __('Купон не найден.', 'woocommerce');
+        return __('Купон не найден.', 'brand-ambassador');
     }
 
     // Получить объект купона
     $coupon = get_post($coupon_id);
     if (!$coupon || $coupon->post_type !== 'shop_coupon') {
-        return __('Купон не существует.', 'woocommerce');
+        return __('Купон не существует.', 'brand-ambassador');
     }
 
     // Вернуть название купона
@@ -83,7 +83,7 @@ add_shortcode('user_related_orders', function () {
 
     // Проверяем, авторизован ли пользователь
     if (!$current_user || $current_user->ID === 0) {
-        return __('Вы должны быть авторизованы для просмотра ваших заказов.', 'woocommerce');
+        return __('Вы должны быть авторизованы для просмотра ваших заказов.', 'brand-ambassador');
     }
 
     // Получаем ID текущего пользователя
@@ -91,7 +91,7 @@ add_shortcode('user_related_orders', function () {
 
     // Получаем роли и размеры выплат из настроек
     $blogger_role = get_option('blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
-    $expert_role = get_option('expert_role', 'customer'); // Роль для экспертов (по умолчанию customer)
+    $expert_role = get_option('expert_role', 'subscriber'); // Роль для экспертов (по умолчанию subscriber)
     $blogger_reward = get_option('blogger_reward', 450); // Выплата для блогеров (по умолчанию 450)
     $expert_reward = get_option('expert_reward', 600); // Выплата для экспертов (по умолчанию 600)
 
@@ -102,7 +102,7 @@ add_shortcode('user_related_orders', function () {
     } elseif (in_array($blogger_role, (array) $current_user->roles, true)) {
         $reward_per_order = $blogger_reward; // Выплата для роли "Блогер"
     } else {
-        return __('У вас нет доступа к статистике.', 'woocommerce');
+        return __('У вас нет доступа к статистике.', 'brand-ambassador');
     }
 
     // Ищем купоны, связанные с текущим пользователем
@@ -119,7 +119,7 @@ add_shortcode('user_related_orders', function () {
 
     $coupons = get_posts($args_coupons);
     if (empty($coupons)) {
-        return __('У вас нет связанных купонов.', 'woocommerce');
+        return __('У вас нет связанных купонов.', 'brand-ambassador');
     }
 
     // Составляем массив кодов купонов, связанных с пользователем
@@ -134,7 +134,7 @@ add_shortcode('user_related_orders', function () {
 
     // Проверка диапазона месяца
     if ($month < 1 || $month > 12) {
-        return __('Неверный месяц.', 'woocommerce');
+        return __('Неверный месяц.', 'brand-ambassador');
     }
 
     // Поиск заказов со статусом "выполнен" и применёнными купонами
@@ -174,7 +174,7 @@ add_shortcode('user_related_orders', function () {
 
     // Форма для выбора месяца и года
     echo '<form method="get" class="filter-form">';
-    echo '<label for="month">' . __('Месяц:', 'woocommerce') . '</label>';
+    echo '<label for="month">' . __('Месяц:', 'brand-ambassador') . '</label>';
     echo '<select id="month" name="month" class="filter-select">';
     for ($m = 1; $m <= 12; $m++) {
         echo sprintf(
@@ -186,7 +186,7 @@ add_shortcode('user_related_orders', function () {
     }
     echo '</select>';
 
-    echo '<label for="year">' . __('Год:', 'woocommerce') . '</label>';
+    echo '<label for="year">' . __('Год:', 'brand-ambassador') . '</label>';
     echo '<select id="year" name="year" class="filter-select">'; 
     for ($y = date('Y') - 1; $y <= date('Y'); $y++) {
         echo sprintf(
@@ -198,15 +198,15 @@ add_shortcode('user_related_orders', function () {
     }
     echo '</select>';
 
-    echo '<button type="submit" class="apply-buttons">' . __('Применить', 'woocommerce') . '</button>';
+    echo '<button type="submit" class="apply-buttons">' . __('Применить', 'brand-ambassador') . '</button>';
     echo '</form>';
 
     // Заголовок с выбранным месяцем и годом
-    echo '<h3 class="selected-month-year-title">' . sprintf(__('Заказы со статусом выполнен* за %s %d:', 'woocommerce'), date_i18n('F', mktime(0, 0, 0, $month, 10)), $year) . '</h3>';
+    echo '<h3 class="selected-month-year-title">' . sprintf(__('Заказы со статусом выполнен* за %s %d:', 'brand-ambassador'), date_i18n('F', mktime(0, 0, 0, $month, 10)), $year) . '</h3>';
 
     if (empty($orders_completed)) {
         // Если заказов нет
-        echo '<p>' . __('Нет выполненных заказов за выбранный период.', 'woocommerce') . '</p>';
+        echo '<p>' . __('Нет выполненных заказов за выбранный период.', 'brand-ambassador') . '</p>';
     } else {
         // Если заказы найдены
         $order_count = 0;
@@ -216,7 +216,7 @@ add_shortcode('user_related_orders', function () {
             $order = wc_get_order($order_post->ID);
             $used_coupons = $order->get_coupon_codes(); // Получаем применённые купоны
             $payout_status = get_post_meta($order->get_id(), '_payout_status', true); // Получаем статус выплаты
-            $payout_label = $payout_status === 'paid' ? __('Вознаграждение Вам выплачено', 'woocommerce') : __('Вознаграждение Вам ещё не выплачено', 'woocommerce');
+            $payout_label = $payout_status === 'paid' ? __('Вознаграждение выплачено', 'brand-ambassador') : __('Нет выплаты', 'brand-ambassador');
             
             foreach ($used_coupons as $coupon_code) {
                 if (in_array(strtolower($coupon_code), $related_coupons, true)) {
@@ -224,7 +224,7 @@ add_shortcode('user_related_orders', function () {
                     $order_count++;
                     echo '<li>';
                     echo sprintf(
-                    __('№%d от %s c купоном: %s — %s', 'woocommerce'),
+                    __('№%d от %s c купоном: %s — %s', 'brand-ambassador'),
                     $order->get_id(),
                     date_i18n(get_option('date_format'), strtotime($order->get_date_created())),
                     $coupon_code,
@@ -239,14 +239,14 @@ add_shortcode('user_related_orders', function () {
 
         // Если не было заказов с применёнными купонами
         if ($order_count === 0) {
-            echo '<p>' . __('Нет выполненных заказов за выбранный период.', 'woocommerce') . '</p>';
+            echo '<p>' . __('Нет выполненных заказов за выбранный период.', 'brand-ambassador') . '</p>';
         } else {
             // Расчёт выплаты
             $total_reward = $order_count * $reward_per_order;
 
             // Вывод информации о выплате
             echo '<p class="payout">' . sprintf(
-                __('Выплата за %s %d составит %d * %dруб = %dруб', 'woocommerce'),
+                __('Выплата за %s %d составит %d * %dруб = %dруб', 'brand-ambassador'),
                 date_i18n('F', mktime(0, 0, 0, $month, 10)),
                 $year,
                 $order_count,
@@ -257,11 +257,11 @@ add_shortcode('user_related_orders', function () {
     }
 
     // Заголовок для заказов с другими статусами
-    echo '<p class="other-statuses-title">' . __('Посмотреть заказы в статусе: обработка, доставка, отменён, выполнен', 'woocommerce') . '</p>';
+    echo '<p class="other-statuses-title">' . __('Посмотреть заказы в статусе: обработка, доставка, отменён, выполнен', 'brand-ambassador') . '</p>';
 
     if (empty($orders_other_statuses)) {
         // Если заказов с другими статусами нет
-        echo '<p class="other-statuses-none">' . __('Нет заказов с другими статусами за выбранный период.', 'woocommerce') . '</p>';
+        echo '<p class="other-statuses-none">' . __('Нет заказов с другими статусами за выбранный период.', 'brand-ambassador') . '</p>';
     } else {
         // Если заказы с другими статусами найдены
         echo '<ul class="other-statuses-list">';
@@ -274,7 +274,7 @@ add_shortcode('user_related_orders', function () {
                 if (in_array(strtolower($coupon_code), $related_coupons, true)) {
                     echo '<li>';
                     echo sprintf(
-                        __('№%d от %s, Статус: %s', 'woocommerce'),
+                        __('№%d от %s, Статус: %s', 'brand-ambassador'),
                         $order->get_id(),
                         date_i18n(get_option('date_format'), strtotime($order->get_date_created())),
                         wc_get_order_status_name($order->get_status()) // Получаем статус заказа
@@ -287,7 +287,7 @@ add_shortcode('user_related_orders', function () {
         echo '</ul>';
     }
     // Добавляем финальную строчку с классом
-    echo '<p class="reward-note">' . __('*Вознаграждение начисляется только за выполненные заказы.', 'woocommerce') . '</p>';
+    echo '<p class="reward-note">' . __('*Вознаграждение начисляется только за выполненные заказы.', 'brand-ambassador') . '</p>';
 
     echo '</div>';
 
@@ -305,7 +305,7 @@ add_shortcode('user_total_orders', function () {
 
     // Проверяем, авторизован ли пользователь
     if (!$current_user || $current_user->ID === 0) {
-        return __('Вы должны быть авторизованы для просмотра информации.', 'woocommerce');
+        return __('Вы должны быть авторизованы для просмотра информации.', 'brand-ambassador');
     }
 
     // Получаем ID текущего пользователя
@@ -313,7 +313,7 @@ add_shortcode('user_total_orders', function () {
 
     // Получаем роли и размеры выплат из настроек
     $blogger_role = get_option('blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
-    $expert_role = get_option('expert_role', 'customer'); // Роль для экспертов (по умолчанию customer)
+    $expert_role = get_option('expert_role', 'subscriber'); // Роль для экспертов (по умолчанию subscriber)
     $blogger_reward = get_option('blogger_reward', 450); // Выплата для блогеров (по умолчанию 450)
     $expert_reward = get_option('expert_reward', 600); // Выплата для экспертов (по умолчанию 600)
 
@@ -324,7 +324,7 @@ add_shortcode('user_total_orders', function () {
     } elseif (in_array($blogger_role, (array) $current_user->roles, true)) {
         $reward_per_order = $blogger_reward; // Выплата для роли "Блогер"
     } else {
-        return __('У вас нет доступа к статистике.', 'woocommerce');
+        return __('У вас нет доступа к статистике.', 'brand-ambassador');
     }
 
     // Ищем купоны, связанные с текущим пользователем
@@ -341,7 +341,7 @@ add_shortcode('user_total_orders', function () {
 
     $coupons = get_posts($args_coupons);
     if (empty($coupons)) {
-        return __('У вас нет личного купона.', 'woocommerce');
+        return __('У вас нет личного купона.', 'brand-ambassador');
     }
 
     // Составляем массив кодов купонов, связанных с пользователем
@@ -380,9 +380,9 @@ add_shortcode('user_total_orders', function () {
     ob_start();
 
     echo '<div class="user-total-orders">';
-    echo '<h3 class="user-statistics-title">'. __('За весь период', 'woocommerce') . '</h3>';
-    echo '<p>' . sprintf(__('Всего заказов с вашим купоном: %d', 'woocommerce'), $order_count) . '</p>';
-    echo '<p>' . sprintf(__('Общая сумма вознаграждения: %dруб', 'woocommerce'), $total_reward) . '</p>';
+    echo '<h3 class="user-statistics-title">'. __('За весь период', 'brand-ambassador') . '</h3>';
+    echo '<p>' . sprintf(__('Всего заказов с вашим купоном: %d', 'brand-ambassador'), $order_count) . '</p>';
+    echo '<p>' . sprintf(__('Общая сумма вознаграждения: %dруб', 'brand-ambassador'), $total_reward) . '</p>';
     echo '</div>';
 
     return ob_get_clean();
