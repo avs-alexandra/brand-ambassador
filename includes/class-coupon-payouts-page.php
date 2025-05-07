@@ -8,8 +8,8 @@ class CouponPayoutsPage {
     public function add_payouts_page() {
         add_submenu_page(
             'woocommerce-marketing', // Родительская страница
-            __('Выплаты по купонам', 'woocommerce'), // Заголовок страницы
-            __('Выплаты по купонам', 'woocommerce'), // Название в меню
+            __('Выплаты по купонам', 'brand-ambassador'), // Заголовок страницы
+            __('Выплаты по купонам', 'brand-ambassador'), // Название в меню
             'manage_woocommerce', // Разрешения
             'coupon-payouts', // Слаг страницы
             [$this, 'render_payouts_page'] // Callback для рендеринга страницы
@@ -62,7 +62,7 @@ private function get_minimum_order_year() {
 
         // Получаем роли и размеры выплат из настроек
         $blogger_role = get_option('blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
-        $expert_role = get_option('expert_role', 'expert'); // Роль для экспертов (по умолчанию expert)
+        $expert_role = get_option('expert_role', 'subscriber'); // Роль для экспертов (по умолчанию subscriber)
         $blogger_reward = get_option('blogger_reward', 450); // Выплата для блогеров (по умолчанию 450)
         $expert_reward = get_option('expert_reward', 600); // Выплата для экспертов (по умолчанию 600)
 
@@ -78,7 +78,7 @@ private function get_minimum_order_year() {
 
         // Проверяем, корректны ли значения года
         if ($year < $min_year || $year > date('Y')) {
-            echo '<div class="notice notice-error"><p>' . __('Ошибка: Неверный год.', 'woocommerce') . '</p></div>';
+            echo '<div class="notice notice-error"><p>' . __('Ошибка: Неверный год.', 'brand-ambassador') . '</p></div>';
             return;
         }
 
@@ -178,10 +178,10 @@ private function get_minimum_order_year() {
 
         ?>
         <div class="wrap">
-            <h1 class="wp-heading-inline"><?php _e('Выплаты по купонам', 'woocommerce'); ?></h1>
+            <h1 class="wp-heading-inline"><?php _e('Выплаты по купонам', 'brand-ambassador'); ?></h1>
             <?php if (isset($_GET['message']) && $_GET['message'] === 'mixed_statuses'): ?>
             <div class="notice notice-error is-dismissible">
-                <p><?php _e('Выбраны строки с разными статусами выплат. Пожалуйста, измените выбор.', 'woocommerce'); ?></p>
+                <p><?php _e('Выбраны строки с разными статусами выплат. Пожалуйста, измените выбор.', 'brand-ambassador'); ?></p>
             </div>
         <?php endif; ?>
             <?php if ($calculation_result): ?>
@@ -194,9 +194,9 @@ private function get_minimum_order_year() {
             <form method="get" class="filter-form">
                 <input type="hidden" name="page" value="coupon-payouts">
 
-                <label for="month"><?php _e('Месяц:', 'woocommerce'); ?></label>
+                <label for="month"><?php _e('Месяц:', 'brand-ambassador'); ?></label>
                 <select id="month" name="m">
-                    <option value="0"><?php _e('Все месяцы', 'woocommerce'); ?></option>
+                    <option value="0"><?php _e('Все месяцы', 'brand-ambassador'); ?></option>
                     <?php for ($m = 1; $m <= 12; $m++): ?>
                         <option value="<?php echo esc_attr($m); ?>" <?php selected($month, $m); ?>>
                             <?php echo esc_html(date_i18n('F', mktime(0, 0, 0, $m, 10))); ?>
@@ -204,7 +204,7 @@ private function get_minimum_order_year() {
                     <?php endfor; ?>
                 </select>
 
-                <label for="year"><?php _e('Год:', 'woocommerce'); ?></label>
+                <label for="year"><?php _e('Год:', 'brand-ambassador'); ?></label>
                 <select id="year" name="y">
                     <?php for ($y = $min_year; $y <= date('Y'); $y++): ?>
                         <option value="<?php echo esc_attr($y); ?>" <?php selected($year, $y); ?>>
@@ -213,29 +213,29 @@ private function get_minimum_order_year() {
                     <?php endfor; ?>
                 </select>
 
-                <label for="user"><?php _e('Пользователь:', 'woocommerce'); ?></label>
-                <input type="text" id="user" name="user" value="<?php echo esc_attr($user_filter); ?>" placeholder="<?php _e('Имя, Email или ID', 'woocommerce'); ?>" />
+                <label for="user"><?php _e('Пользователь:', 'brand-ambassador'); ?></label>
+                <input type="text" id="user" name="user" value="<?php echo esc_attr($user_filter); ?>" placeholder="<?php _e('Имя, Email или ID', 'brand-ambassador'); ?>" />
 
-                <label for="email_sort"><?php _e('Сортировка email:', 'woocommerce'); ?></label>
+                <label for="email_sort"><?php _e('Сортировка email:', 'brand-ambassador'); ?></label>
                 <select id="email_sort" name="email_sort">
-                    <option value=""><?php _e('Не сортировать', 'woocommerce'); ?></option>
-                    <option value="asc" <?php selected($email_sort, 'asc'); ?>><?php _e('A-Z', 'woocommerce'); ?></option>
+                    <option value=""><?php _e('Не сортировать', 'brand-ambassador'); ?></option>
+                    <option value="asc" <?php selected($email_sort, 'asc'); ?>><?php _e('A-Z', 'brand-ambassador'); ?></option>
                 </select>
 
-                <label for="level"><?php _e('Уровень:', 'woocommerce'); ?></label>
+                <label for="level"><?php _e('Уровень:', 'brand-ambassador'); ?></label>
                 <select id="level" name="level">
-                    <option value=""><?php _e('Все уровни', 'woocommerce'); ?></option>
-                    <option value="Эксперт" <?php selected($level_filter, 'Эксперт'); ?>><?php _e('Эксперт', 'woocommerce'); ?></option>
-                    <option value="Блогер" <?php selected($level_filter, 'Блогер'); ?>><?php _e('Блогер', 'woocommerce'); ?></option>
+                    <option value=""><?php _e('Все уровни', 'brand-ambassador'); ?></option>
+                    <option value="Эксперт" <?php selected($level_filter, 'Эксперт'); ?>><?php _e('Эксперт', 'brand-ambassador'); ?></option>
+                    <option value="Блогер" <?php selected($level_filter, 'Блогер'); ?>><?php _e('Блогер', 'brand-ambassador'); ?></option>
                 </select>
 
-                <button type="submit" class="button"><?php _e('Применить', 'woocommerce'); ?></button>
+                <button type="submit" class="button"><?php _e('Применить', 'brand-ambassador'); ?></button>
             </form>
             
             <!-- Проверяем, есть ли заказы -->
             <?php if (empty($orders)): ?>
                 <p style="margin-top: 20px; font-size: 16px; color: #555;">
-                    <?php echo sprintf(__('Нет заказов за %s %d.', 'woocommerce'), $month > 0 ? date_i18n('F', mktime(0, 0, 0, $month, 10)) : __('все месяцы', 'woocommerce'), $year); ?>
+                    <?php echo sprintf(__('Нет заказов за %s %d.', 'brand-ambassador'), $month > 0 ? date_i18n('F', mktime(0, 0, 0, $month, 10)) : __('все месяцы', 'brand-ambassador'), $year); ?>
                 </p>
             <?php else: ?>
             
@@ -252,13 +252,13 @@ private function get_minimum_order_year() {
                         <thead>
                             <tr>
                                 <th><input type="checkbox" id="select-all"></th>
-                                <th><?php _e('Номер заказа', 'woocommerce'); ?></th>
-                                <th><?php _e('Дата заказа', 'woocommerce'); ?></th>
-                                <th><?php _e('Промокод', 'woocommerce'); ?></th>
-                                <th><?php _e('Амбассадор', 'woocommerce'); ?></th>
-                                <th><?php _e('Уровень', 'woocommerce'); ?></th>
-                                <th><?php _e('Размер выплаты', 'woocommerce'); ?></th>
-                                <th><?php _e('Статус выплаты', 'woocommerce'); ?></th>
+                                <th><?php _e('Номер заказа', 'brand-ambassador'); ?></th>
+                                <th><?php _e('Дата заказа', 'brand-ambassador'); ?></th>
+                                <th><?php _e('Промокод', 'brand-ambassador'); ?></th>
+                                <th><?php _e('Амбассадор', 'brand-ambassador'); ?></th>
+                                <th><?php _e('Уровень', 'brand-ambassador'); ?></th>
+                                <th><?php _e('Размер выплаты', 'brand-ambassador'); ?></th>
+                                <th><?php _e('Статус выплаты', 'brand-ambassador'); ?></th>
                             </tr>
                         </thead>
                        <tbody>
@@ -274,7 +274,7 @@ private function get_minimum_order_year() {
                                     <td><?php echo esc_html($order['role']); ?></td>
                                     <td><?php echo esc_html($order['reward']); ?> руб.</td>
                                     <td>
-                                        <?php echo $order['payout_status'] ? __('Выплачена', 'woocommerce') : __('Не выплатили', 'woocommerce'); ?>
+                                        <?php echo $order['payout_status'] ? __('Выплачена', 'brand-ambassador') : __('Не выплатили', 'brand-ambassador'); ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -282,19 +282,19 @@ private function get_minimum_order_year() {
                     </table>
 
                     <button type="submit" name="action_type" value="calculate_sum" class="button button-secondary" style="background-color: #ffc107; border-color: #ffc107; color: #000;">
-                        <?php _e('Рассчитать выплату', 'woocommerce'); ?>
+                        <?php _e('Рассчитать выплату', 'brand-ambassador'); ?>
                     </button>
 
                     <?php if ($show_action_buttons): ?>
                         <button type="submit" name="action_type" value="mark_paid" class="button button-primary" style="background-color: #28a745; border-color: #28a745;">
-                            <?php _e('Рассчитать Амбассадора', 'woocommerce'); ?>
+                            <?php _e('Рассчитать Амбассадора', 'brand-ambassador'); ?>
                         </button>
                         <button type="submit" name="action_type" value="mark_unpaid" class="button button-secondary" style="background-color: #dc3545; border-color: #dc3545; color: #fff;">
-                            <?php _e('Отменить выплату', 'woocommerce'); ?>
+                            <?php _e('Отменить выплату', 'brand-ambassador'); ?>
                         </button>
                         
                         <button type="button" class="button button-secondary" style="background-color: #6c757d; border-color: #6c757d; color: #fff;" onclick="window.location.reload();">
-                        <?php _e('Отменить выбор', 'woocommerce'); ?>
+                        <?php _e('Отменить выбор', 'brand-ambassador'); ?>
                     </button>
                     <?php endif; ?>
                 </form>
