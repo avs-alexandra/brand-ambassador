@@ -25,6 +25,9 @@ class AmbassadorCouponProgram {
     //Добавить метаполя пользователю номер банковской карты и наименование банка   
     add_action('personal_options_update', [$this, 'save_user_meta_fields']);
     add_action('edit_user_profile_update', [$this, 'save_user_meta_fields']);
+    
+    //При удалении купона отвязывать Амбассадора
+    add_action('before_delete_post', [$this, 'unlink_user_before_coupon_delete']);
 
     // Запретить пользователю применять свой купон
     add_filter('woocommerce_coupon_is_valid', [$this, 'restrict_user_from_using_own_coupon'], 10, 3);
@@ -354,6 +357,24 @@ public function restrict_user_from_using_own_coupon($valid, $coupon, $discount) 
     return $valid;
 }
 
+/**
+ * Отвязывает амбассадора от купона перед его удалением.
+ */
+public function unlink_user_before_coupon_delete($post_id) {
+    // Проверяем, является ли удаляемая запись купоном
+    if (get_post_type($post_id) === 'shop_coupon') {
+        // Получаем ID пользователя, связанного с купоном
+        $ambassador_user_id = get_post_meta($post_id, '_ambassador_user', true);
+
+        if ($ambassador_user_id) {
+            // Удаляем связь между пользователем и купоном
+            delete_user_meta($ambassador_user_id, '_user_coupon');
+        }
+
+        // Удаляем метаполе, связанное с купоном
+        delete_post_meta($post_id, '_ambassador_user');
+    }
+}
 
     /**
      * Отображение связанного пользователя рядом с купоном в интерфейсе редактирования заказа
