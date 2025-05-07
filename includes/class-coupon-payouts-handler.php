@@ -66,12 +66,12 @@ class CouponPayoutsHandler {
      */
     private function calculate_payout_sum($selected_orders) {
         if (empty($selected_orders)) {
-            return ['error' => __('Выберите хотя бы одну строку для расчёта.', 'woocommerce')];
+            return ['error' => __('Выберите хотя бы одну строку для расчёта.', 'brand-ambassador')];
         }
 
         // Получаем текущие настройки для ролей и выплат
         $blogger_role = get_option('blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
-        $expert_role = get_option('expert_role', 'expert'); // Роль для экспертов (по умолчанию expert)
+        $expert_role = get_option('expert_role', 'subscriber'); // Роль для экспертов (по умолчанию subscriber)
         $blogger_reward = get_option('blogger_reward', 450); // Выплата для блогеров (по умолчанию 450)
         $expert_reward = get_option('expert_reward', 600); // Выплата для экспертов (по умолчанию 600)
 
@@ -120,7 +120,7 @@ class CouponPayoutsHandler {
 
         if (count($ambassadors) > 1) {
             return [
-                'error' => __('Выбрано несколько Амбассадоров, пожалуйста, измените выбор.', 'woocommerce'),
+                'error' => __('Выбрано несколько Амбассадоров, пожалуйста, измените выбор.', 'brand-ambassador'),
             ];
         }
 
@@ -133,7 +133,7 @@ class CouponPayoutsHandler {
 
         return [
             'message' => sprintf(
-                __('Общая сумма выплаты за %s %d для %s (%s): %d*%dруб = %dруб<br>Уровень: %s<br>№ карты: %s<br>Банк: %s', 'woocommerce'),
+                __('Общая сумма выплаты за %s %d для %s (%s): %d*%dруб = %dруб<br>Уровень: %s<br>№ карты: %s<br>Банк: %s', 'brand-ambassador'),
                 date_i18n('F'),
                 date('Y'),
                 $user->display_name,
