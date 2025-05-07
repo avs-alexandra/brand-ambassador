@@ -47,8 +47,10 @@ class AmbassadorNotifications {
                 continue;
             }
 
+            // Формируем тему письма из настроек
+            $email_subject = get_option('ambassador_email_subject', __('Ваш купон был использован!', 'brand-ambassador'));
+
             // Формируем текст письма
-            $email_subject = __('Ваш купон был использован!', 'woocommerce');
             $email_body = $this->generate_email_content($ambassador, $coupon_code, $order_id);
 
             // Отправляем письмо с использованием WooCommerce
@@ -65,16 +67,19 @@ class AmbassadorNotifications {
      * @return string Содержимое письма
      */
     private function generate_email_content($ambassador, $coupon_code, $order_id) {
-        ob_start();
-        ?>
-        <p style="padding: 40px 40px;"><?php printf(
-        __('Здравствуйте, %s! Ваш купон "%s" был использован для заказа №%d.', 'woocommerce'),
-        esc_html($ambassador->display_name),
-        esc_html($coupon_code),
-        esc_html($order_id)
-    ); ?></p>
-        <?php
-        return ob_get_clean();
+        // Получаем текст письма и шрифт из настроек "Настройки Амбассадора"
+        $email_template = get_option('ambassador_email_template', 'Здравствуйте, [ambassador]! Ваш купон "[coupon]" был использован для заказа №[order_id].');
+        $email_font = get_option('ambassador_email_font', 'Arial, sans-serif');
+
+        // Заменяем плейсхолдеры на реальные данные
+        $email_body = strtr($email_template, [
+            '[ambassador]' => esc_html($ambassador->display_name),
+            '[coupon]' => esc_html($coupon_code),
+            '[order_id]' => esc_html($order_id),
+        ]);
+
+        // Возвращаем текст письма с применением шрифта
+        return '<div style="font-family: ' . esc_attr($email_font) . '; padding: 40px; font-size: 15px;">' . wpautop($email_body) . '</div>';
     }
 
     /**
@@ -89,6 +94,9 @@ class AmbassadorNotifications {
         $header_template = plugin_dir_path(__FILE__) . '../templates/email_header.php';
         $footer_template = plugin_dir_path(__FILE__) . '../templates/email_footer.php';
 
+        // Получаем шрифт из настроек "Настройки Амбассадора"
+        $email_font = get_option('ambassador_email_font', 'Arial, sans-serif');
+
         // Генерация шапки
         ob_start();
         if (file_exists($header_template)) {
@@ -99,6 +107,7 @@ class AmbassadorNotifications {
             '{background_color}' => get_option("woocommerce_email_background_color", "#f5f5f5"),
             '{woocommerce_email_base_color}' => get_option("woocommerce_email_base_color", "#007cba"),
             '{title}' => esc_html($subject),
+            '{font_family}' => esc_attr($email_font), // Применяем шрифт
         ]);
 
         // Генерация подвала
@@ -109,14 +118,15 @@ class AmbassadorNotifications {
         $footer = ob_get_clean();
         $footer = strtr($footer, [
             '{text_color}' => get_option("woocommerce_email_text_color", "#444444"),
-            '{description}' => get_option('woocommerce_email_footer_text', __("Спасибо за использование нашего сервиса!", "woocommerce")),
+            '{description}' => get_option('woocommerce_email_footer_text', __("Спасибо за использование нашего сервиса!", "brand-ambassador")),
             '{site_title}' => get_bloginfo('name'),
             '{site_url}' => home_url(),
             '{year}' => date('Y'),
+            '{font_family}' => esc_attr($email_font), // Применяем шрифт
         ]);
 
         // Объединяем шапку, тело и подвал
-        $wrapped_message = $header . wpautop($message) . $footer;
+        $wrapped_message = $header . $message . $footer;
 
         // Заголовки
         $headers = ['Content-Type: text/html; charset=UTF-8'];
