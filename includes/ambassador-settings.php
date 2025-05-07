@@ -35,6 +35,7 @@ class AmbassadorSettingsPage {
         register_setting('ambassador_settings', 'expert_reward');
         register_setting('ambassador_settings', 'ambassador_delete_meta');
         register_setting('ambassador_settings', 'ambassador_email_template'); // Новый параметр для текста письма
+        register_setting('ambassador_settings', 'ambassador_email_font'); // Новый параметр для шрифта
     }
 
     /**
@@ -49,6 +50,7 @@ class AmbassadorSettingsPage {
         $expert_reward = get_option('expert_reward', 600);
         $delete_meta = get_option('ambassador_delete_meta', 0);
         $email_template = get_option('ambassador_email_template', 'Здравствуйте, [ambassador]! Ваш купон "[coupon]" был использован для заказа №[order_id].');
+        $email_font = get_option('ambassador_email_font', 'Arial, sans-serif'); // Значение по умолчанию
         ?>
         <div class="wrap">
             <h1><?php _e('Настройки Амбассадора бренда', 'woocommerce'); ?></h1>
@@ -105,6 +107,18 @@ class AmbassadorSettingsPage {
                         </td>
                     </tr>
                     <tr valign="top">
+                        <th scope="row"><?php _e('Шрифт письма', 'woocommerce'); ?></th>
+                        <td>
+                            <input
+                                type="text"
+                                name="ambassador_email_font"
+                                value="<?php echo esc_attr($email_font); ?>"
+                                class="regular-text"
+                            />
+                            <p class="description"><?php _e('Укажите шрифт для письма (например, Arial, sans-serif).', 'woocommerce'); ?></p>
+                        </td>
+                    </tr>
+                    <tr valign="top">
                         <th scope="row"><?php _e('Перед удалением плагина', 'woocommerce'); ?></th>
                         <td>
                             <input type="checkbox" name="ambassador_delete_meta" value="1" <?php checked(1, $delete_meta, true); ?> />
@@ -145,7 +159,8 @@ class AmbassadorSettingsPage {
             delete_option('expert_role');
             delete_option('blogger_reward');
             delete_option('expert_reward');
-            delete_option('ambassador_email_template'); // Удаление нового параметра
+            delete_option('ambassador_email_template'); // Удаление текста письма
+            delete_option('ambassador_email_font'); // Удаление шрифта
         }
     }
 }
