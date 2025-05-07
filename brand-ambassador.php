@@ -1,9 +1,12 @@
 <?php
 /**
- * Plugin Name: Амбассадор бренда
- * Description: Плагин для управления программой амбассадоров бренда с функционалом купонов WooCommerce.
- * Version: 1.0.0
- * Author: LDOG
+ * Plugin Name:      Амбассадор бренда
+ * Version:          1.0.0
+ * Text Domain:      brand-ambassador
+ * Plugin URI:       https://github.com/avs-alexandra/brand-ambassador
+ * Description:      Программа амбассадор бренда с функционалом купонов WooCommerce.
+ * Author:           LDOG
+ * Requires Plugins: woocommerce
  */
 
 if (!defined('ABSPATH')) exit; // Запрет прямого доступа
@@ -11,7 +14,7 @@ if (!defined('ABSPATH')) exit; // Запрет прямого доступа
 // Подключаем основной класс плагина
 require_once plugin_dir_path(__FILE__) . 'includes/class-ambassador-coupon.php';
 
-// Подключаем шорткоды
+// Подключаем шорткоды и опцию в купоне только на первый заказ
 require_once plugin_dir_path(__FILE__) . 'includes/shortcodes.php';
 
 // Подключаем обработчик выплат
@@ -22,6 +25,9 @@ require_once plugin_dir_path(__FILE__) . 'includes/class-coupon-payouts-page.php
 
 // Подключаем страницу настроек
 require_once plugin_dir_path(__FILE__) . 'includes/ambassador-settings.php';
+
+// Подключаем класс уведомлений
+require_once plugin_dir_path(__FILE__) . 'includes/class-ambassador-notifications.php';
 
 // Инициализация плагина
 function initialize_brand_ambassador() {
@@ -36,5 +42,8 @@ function initialize_brand_ambassador() {
     // Основной функционал и настройки
     new AmbassadorCouponProgram();
     new AmbassadorSettingsPage(); // Страница настроек
+
+    // Уведомления
+    new AmbassadorNotifications(); // Уведомления для Амбассадоров
 }
 add_action('plugins_loaded', 'initialize_brand_ambassador');
