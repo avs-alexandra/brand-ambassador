@@ -1,5 +1,5 @@
 === Brand Ambassador ===
-Contributors: avs-alexandra
+Contributors: LDOG
 Tags: woocommerce, coupons, ambassador, affiliate
 Requires at least: 5.0
 Tested up to: 6.2
@@ -24,7 +24,9 @@ Brand Ambassador — это плагин для WordPress, который доб
 
 == Frequently Asked Questions ==
 = Какие шорткоды доступны? =
-- `[user_coupon_name]` — Отображает название купона, связанного с текущим пользователем.
+- `[user_coupon_name]` — выводит названия купона Амбассадора в личном кабинете.
+- `[user_related_orders]` — выводит статистику заказов Амбассадора в личном кабинете.
+- `[user_total_orders]` — выводит общую статистику заказов Амбассадора в личном кабинете.
 
 = Можно ли использовать плагин без WooCommerce? =
 Нет, плагин предназначен только для сайтов WooCommerce.
@@ -38,6 +40,9 @@ Brand Ambassador — это плагин для WordPress, который доб
 == Upgrade Notice ==
 = 1.0.0 =
 * Обновите до последней версии для полного функционала.
+
+== Compatibility ==
+Плагин протестирован и поддерживает PHP версии 7.4, 8.0, 8.1 и 8.2.
 
 == License ==
 Этот плагин распространяется под лицензией GPLv2 или более поздней версии.
