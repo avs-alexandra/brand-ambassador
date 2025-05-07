@@ -34,7 +34,7 @@ class AmbassadorCouponProgram {
      * Добавление нового столбца "Амбассадор" в таблицу купонов
      */
     public function add_user_column_to_coupon_table($columns) {
-        $columns['associated_user'] = __('Амбассадор', 'woocommerce');
+        $columns['associated_user'] = __('Амбассадор', 'brand-ambassador');
         return $columns;
     }
 
@@ -49,10 +49,10 @@ class AmbassadorCouponProgram {
                 if ($user) {
                     echo '<a href="' . esc_url(get_edit_user_link($user_id)) . '">' . esc_html($user->display_name) . ' (' . esc_html($user->user_email) . ')</a>';
                 } else {
-                    echo __('Н/Д', 'woocommerce');
+                    echo __('Н/Д', 'brand-ambassador');
                 }
             } else {
-                echo __('', 'woocommerce');
+                echo __('', 'brand-ambassador');
             }
         }
     }
@@ -74,8 +74,8 @@ class AmbassadorCouponProgram {
         ?>
         <div class="options_group">
             <p class="form-field">
-                <label for="ambassador_user"><?php _e('Амбассадор (по email)', 'woocommerce'); ?></label>
-                <select id="ambassador_user" name="ambassador_user" class="wc-user-search" style="width: 50%;" data-placeholder="<?php esc_attr_e('Начните вводить email', 'woocommerce'); ?>">
+                <label for="ambassador_user"><?php _e('Амбассадор (по email)', 'brand-ambassador'); ?></label>
+                <select id="ambassador_user" name="ambassador_user" class="wc-user-search" style="width: 50%;" data-placeholder="<?php esc_attr_e('Начните вводить email', 'brand-ambassador'); ?>">
                     <?php if ($ambassador_user_id && $user_email_display): ?>
                         <option value="<?php echo esc_attr($ambassador_user_id); ?>" selected="selected">
                             <?php echo esc_html($user_email_display); ?>
@@ -85,13 +85,13 @@ class AmbassadorCouponProgram {
                 <?php if ($ambassador_user_id): ?>
                     <p>
                         <?php echo sprintf(
-                            __('Амбассадор: <a href="%s" target="_blank">%s</a>', 'woocommerce'),
+                            __('Амбассадор: <a href="%s" target="_blank">%s</a>', 'brand-ambassador'),
                             esc_url(get_edit_user_link($ambassador_user_id)),
                             esc_html($user_email_display)
                         ); ?>
                     </p>
                     <button type="button" class="button unlink-user-button" data-coupon-id="<?php echo esc_attr($post->ID); ?>">
-                        <?php _e('Отвязать', 'woocommerce'); ?>
+                        <?php _e('Отвязать', 'brand-ambassador'); ?>
                     </button>
                 <?php endif; ?>
             </p>
@@ -130,10 +130,10 @@ class AmbassadorCouponProgram {
                         nonce: '<?php echo wp_create_nonce('unlink_user_nonce'); ?>'
                     }, function(response) {
                         if (response.success) {
-                            alert('<?php _e('Пользователь отвязан от купона.', 'woocommerce'); ?>');
+                            alert('<?php _e('Пользователь отвязан от купона.', 'brand-ambassador'); ?>');
                             location.reload();
                         } else {
-                            alert('<?php _e('Ошибка при отвязке пользователя.', 'woocommerce'); ?>');
+                            alert('<?php _e('Ошибка при отвязке пользователя.', 'brand-ambassador'); ?>');
                         }
                     });
                 });
@@ -171,16 +171,16 @@ class AmbassadorCouponProgram {
 public function show_user_coupon($user) {
     // Получаем роли из настроек
     $blogger_role = get_option('blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
-    $expert_role = get_option('expert_role', 'customer'); // Роль для экспертов (по умолчанию customer)
+    $expert_role = get_option('expert_role', 'subscriber'); // Роль для экспертов (по умолчанию subscriber)
 
     // Проверяем, есть ли у пользователя нужные роли
     if (in_array($expert_role, (array) $user->roles) || in_array($blogger_role, (array) $user->roles)) {
         // Устанавливаем заголовок в зависимости от роли
         $title = '';
         if (in_array($expert_role, (array) $user->roles)) {
-            $title = __('Программа амбассадор бренда для экспертов', 'woocommerce');
+            $title = __('Программа амбассадор бренда для экспертов', 'brand-ambassador');
         } elseif (in_array($blogger_role, (array) $user->roles)) {
-            $title = __('Программа амбассадор бренда для блогеров', 'woocommerce');
+            $title = __('Программа амбассадор бренда для блогеров', 'brand-ambassador');
         }
 
         // Вывод заголовка
@@ -191,28 +191,28 @@ public function show_user_coupon($user) {
         if ($coupon_id) {
             $coupon = get_post($coupon_id);
             if ($coupon) {
-                echo '<h4><strong>' . __('Купон:', 'woocommerce') . '</strong> ';
+                echo '<h4><strong>' . __('Купон:', 'brand-ambassador') . '</strong> ';
                 echo '<a href="' . esc_url(get_edit_post_link($coupon_id)) . '">' . esc_html($coupon->post_title) . '</a></h4>';
             }
         } else {
-            echo '<p>' . __('Купон не добавлен', 'woocommerce') . '</p>';
+            echo '<p>' . __('Купон не добавлен', 'brand-ambassador') . '</p>';
         }
 
         // Метаполя для номера банковской карты и банка
         $user_numbercartbank = get_user_meta($user->ID, 'user_numbercartbank', true);
         $user_bankname = get_user_meta($user->ID, 'user_bankname', true);
 
-        echo '<h3>' . __('Банковские реквизиты', 'woocommerce') . '</h3>';
+        echo '<h3>' . __('Банковские реквизиты', 'brand-ambassador') . '</h3>';
         ?>
         <table class="form-table">
             <tr>
-                <th><label for="user_numbercartbank"><?php _e('Номер банковской карты', 'woocommerce'); ?></label></th>
+                <th><label for="user_numbercartbank"><?php _e('Номер банковской карты', 'brand-ambassador'); ?></label></th>
                 <td>
                     <input type="text" name="user_numbercartbank" id="user_numbercartbank" value="<?php echo esc_attr($user_numbercartbank); ?>" class="regular-text" />
                 </td>
             </tr>
             <tr>
-                <th><label for="user_bankname"><?php _e('Наименование банка', 'woocommerce'); ?></label></th>
+                <th><label for="user_bankname"><?php _e('Наименование банка', 'brand-ambassador'); ?></label></th>
                 <td>
                     <input type="text" name="user_bankname" id="user_bankname" value="<?php echo esc_attr($user_bankname); ?>" class="regular-text" />
                 </td>
@@ -229,7 +229,7 @@ public function show_user_coupon($user) {
 public function save_user_meta_fields($user_id) {
     // Получаем роли из настроек
     $blogger_role = get_option('blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
-    $expert_role = get_option('expert_role', 'customer'); // Роль для экспертов (по умолчанию customer)
+    $expert_role = get_option('expert_role', 'subscriber'); // Роль для экспертов (по умолчанию subscriber)
 
     // Проверяем, есть ли у пользователя нужные роли
     $user = get_userdata($user_id);
@@ -272,12 +272,12 @@ public function search_users_by_email() {
     $term = isset($_GET['term']) ? sanitize_text_field($_GET['term']) : '';
 
     if (empty($term)) {
-        wp_send_json_error(['message' => __('Введите email для поиска.', 'woocommerce')]);
+        wp_send_json_error(['message' => __('Введите email для поиска.', 'brand-ambassador')]);
     }
 
     // Получаем роли из настроек
     $blogger_role = get_option('blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
-    $expert_role = get_option('expert_role', 'customer'); // Роль для экспертов (по умолчанию customer)
+    $expert_role = get_option('expert_role', 'subscriber'); // Роль для экспертов (по умолчанию subscriber)
 
     // Указываем роли, которые нужно фильтровать
     $allowed_roles = [$blogger_role, $expert_role];
@@ -345,7 +345,7 @@ public function restrict_user_from_using_own_coupon($valid, $coupon, $discount) 
     // Проверить, связан ли текущий пользователь с купоном
     if ($current_user_id == $associated_user_id) {
         wc_add_notice(
-            __('Вы не можете применить собственный купон.', 'woocommerce'),
+            __('Вы не можете применить собственный купон.', 'brand-ambassador'),
             'error'
         );
         return false; // Купон недействителен
@@ -364,8 +364,8 @@ public function restrict_user_from_using_own_coupon($valid, $coupon, $discount) 
 
         if (!empty($used_coupons)) {
             echo '<div class="used-coupons">';
-            echo '<p>' . __('___', 'woocommerce') . '</p>';
-            echo '<h4>' . __('Программа амбассадор бренда:', 'woocommerce') . '</h4>';
+            echo '<p>' . __('___', 'brand-ambassador') . '</p>';
+            echo '<h4>' . __('Программа амбассадор бренда:', 'brand-ambassador') . '</h4>';
 
             foreach ($used_coupons as $coupon_code) {
                 // Получаем объект купона
@@ -378,15 +378,15 @@ public function restrict_user_from_using_own_coupon($valid, $coupon, $discount) 
                     $user = get_userdata($associated_user_id);
 
                     if ($user) {
-                        echo '<p><strong>' . __('Купон:', 'woocommerce') . '</strong> ' . esc_html($coupon_code) . '</p>';
-                        echo '<p><strong>' . __('Амбассадор:', 'woocommerce') . '</strong> ' . esc_html($user->display_name) . ' (' . esc_html($user->user_email) . ')</p>';
+                        echo '<p><strong>' . __('Купон:', 'brand-ambassador') . '</strong> ' . esc_html($coupon_code) . '</p>';
+                        echo '<p><strong>' . __('Амбассадор:', 'brand-ambassador') . '</strong> ' . esc_html($user->display_name) . ' (' . esc_html($user->user_email) . ')</p>';
                     } else {
-                        echo '<p><strong>' . __('Купон:', 'woocommerce') . '</strong> ' . esc_html($coupon_code) . '</p>';
-                        echo '<p><strong>' . __('Амбассадор:', 'woocommerce') . '</strong> ' . __('Н/Д', 'woocommerce') . '</p>';
+                        echo '<p><strong>' . __('Купон:', 'brand-ambassador') . '</strong> ' . esc_html($coupon_code) . '</p>';
+                        echo '<p><strong>' . __('Амбассадор:', 'brand-ambassador') . '</strong> ' . __('Н/Д', 'brand-ambassador') . '</p>';
                     }
                 } else {
-                    echo '<p><strong>' . __('Купон:', 'woocommerce') . '</strong> ' . esc_html($coupon_code) . '</p>';
-                    echo '<p>' . __('Н/Д.', 'woocommerce') . '</p>';
+                    echo '<p><strong>' . __('Купон:', 'brand-ambassador') . '</strong> ' . esc_html($coupon_code) . '</p>';
+                    echo '<p>' . __('Н/Д.', 'brand-ambassador') . '</p>';
                 }
             }
 
