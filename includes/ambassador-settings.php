@@ -7,6 +7,8 @@ class AmbassadorSettingsPage {
         add_action('admin_menu', [$this, 'add_settings_page']);
         // Регистрируем настройки
         add_action('admin_init', [$this, 'register_settings']);
+        // Проверка на совпадение ролей
+        add_action('admin_notices', [$this, 'check_duplicate_roles']);
         // Регистрируем хук для удаления данных при удалении плагина
         register_uninstall_hook(__FILE__, [__CLASS__, 'delete_plugin_data']);
     }
@@ -40,6 +42,27 @@ class AmbassadorSettingsPage {
     }
 
     /**
+     * Проверка на совпадение ролей и сброс к значениям по умолчанию
+     */
+    public function check_duplicate_roles() {
+        // Получаем текущие значения ролей из настроек
+        $blogger_role = get_option('blogger_role');
+        $expert_role = get_option('expert_role');
+
+        // Проверяем, совпадают ли роли
+        if (!empty($blogger_role) && !empty($expert_role) && $blogger_role === $expert_role) {
+            // Сбрасываем роли к значениям по умолчанию
+            update_option('blogger_role', 'customer'); // По умолчанию 'customer'
+            update_option('expert_role', 'subscriber'); // По умолчанию 'subscriber'
+
+            // Выводим уведомление об ошибке и сбросе
+            echo '<div class="notice notice-error">';
+            echo '<p>' . __('Необходимо выбрать разные роли для Блогера и Эксперта! Роли были сброшены к значениям по умолчанию.', 'brand-ambassador') . '</p>';
+            echo '</div>';
+        }
+    }
+
+    /**
      * Рендеринг страницы настроек
      */
     public function render_settings_page() {
@@ -62,9 +85,9 @@ class AmbassadorSettingsPage {
                 <table class="form-table">
                     <!-- Добавлено уведомление -->
                     <tr>
-                            <p style="color: #646970;">
-                                <?php _e('Выберите разные роли для уровней Блогер и Эксперт для корректного расчёта выплат. (Cоздать новые роли можно с помощью плагина User Role Editor)', 'brand-ambassador'); ?>
-                            </p>
+                        <p style="color: #646970;">
+                            <?php _e('Выберите разные роли для уровней Блогер и Эксперт для корректного расчёта выплат. (Cоздать новые роли можно с помощью плагина User Role Editor)', 'brand-ambassador'); ?>
+                        </p>
                     </tr>
                     <tr valign="top">
                         <th scope="row"><?php _e('Роль для Блогера', 'brand-ambassador'); ?></th>
