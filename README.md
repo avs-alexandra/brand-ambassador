@@ -49,6 +49,7 @@ ________________________________________________________________________________
 
 Например, для шорткода [user_related_orders], css код:
 
+```css
 selector .apply-buttons{background-color:#61C6CC;margin-top:10px;}
 selector .apply-buttons:hover{background-color:#5AB9BE;}
 selector .filter-select{border:2px solid #61C6CC;border-radius:10px;padding:8px 10px;width:230px;margin-top:2px;}
@@ -64,9 +65,17 @@ selector .payout{margin-top:16px;padding:10px 18px;background:#E5D4EF;border-rad
 .user-related-orders ul li:last-child {
     border-bottom: none;}
 .reward-note {font-size: 14px; color: #555;margin-top: 20px;}
-
+```
 
 <img width="500" alt="Снимок экрана 2025-05-08 в 20 32 45" src="https://github.com/user-attachments/assets/0df15666-26b1-46a6-ae0f-5aca33acb857" />
+
+________________________________________________________________________________________________________________
+
+### 5. Добавим форму ввода реквизитов банковской карты для Амбассадора.
+Создайте форму в Elementor, jetformbuilder или любом плагине. Метаполя: user_numbercartbank - номер банковской карты пользователя, user_bankname - название банка пользователя.
+
+<img width="500" alt="Снимок экрана 2025-05-08 в 18 20 30" src="https://github.com/user-attachments/assets/6c6bd8f2-9319-40f3-ac13-1e01e42a34ae" />
+а реквизита банковской карты
 
 
 
