@@ -31,17 +31,49 @@ class AmbassadorSettingsPage {
      * Регистрируем настройки
      */
     public function register_settings() {
-        register_setting('ambassador_settings', 'blogger_role');
-        register_setting('ambassador_settings', 'expert_role');
-        register_setting('ambassador_settings', 'blogger_reward');
-        register_setting('ambassador_settings', 'expert_reward');
-        register_setting('ambassador_settings', 'ambassador_delete_meta');
-        register_setting('ambassador_settings', 'ambassador_email_subject'); // Новый параметр для темы письма
-        register_setting('ambassador_settings', 'ambassador_email_template'); // Новый параметр для текста письма
-        register_setting('ambassador_settings', 'ambassador_email_font'); // Новый параметр для шрифта
+        register_setting('ambassador_settings', 'blogger_role', [
+            'sanitize_callback' => [$this, 'validate_role'],
+        ]);
+        register_setting('ambassador_settings', 'expert_role', [
+            'sanitize_callback' => [$this, 'validate_role'],
+        ]);
+        register_setting('ambassador_settings', 'blogger_reward', [
+            'sanitize_callback' => 'absint', // Санитизация для чисел
+        ]);
+        register_setting('ambassador_settings', 'expert_reward', [
+            'sanitize_callback' => 'absint', // Санитизация для чисел
+        ]);
+        register_setting('ambassador_settings', 'ambassador_delete_meta', [
+            'sanitize_callback' => 'rest_sanitize_boolean', // Для чекбокса
+        ]);
+        register_setting('ambassador_settings', 'ambassador_email_subject', [
+            'sanitize_callback' => 'sanitize_text_field', // Санитизация для текста
+        ]);
+        register_setting('ambassador_settings', 'ambassador_email_template', [
+            'sanitize_callback' => [self::class, 'sanitize_email_template'],
+        ]);
+        register_setting('ambassador_settings', 'ambassador_email_font', [
+            'sanitize_callback' => 'sanitize_text_field', // Санитизация для текста
+        ]);
     }
 
     /**
+     * Кастомная функция валидации для ролей
+     */
+    public function validate_role($role) {
+        global $wp_roles;
+        $roles = array_keys($wp_roles->roles); // Получаем все доступные роли
+        return in_array($role, $roles, true) ? $role : ''; // Проверяем, есть ли роль в списке
+    }
+
+    /**
+     * Кастомная функция санитизации шаблона письма
+     */
+    public static function sanitize_email_template($input) {
+        return wp_kses_post($input); // Разрешает только безопасные HTML-теги
+    }
+
+       /**
      * Проверка на совпадение ролей и сброс к значениям по умолчанию
      */
     public function check_duplicate_roles() {
@@ -211,4 +243,5 @@ class AmbassadorSettingsPage {
             delete_option('ambassador_email_font'); // Удаление шрифта
         }
     }
+
 }
