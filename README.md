@@ -44,10 +44,29 @@ ________________________________________________________________________________
 
 ________________________________________________________________________________________________________________
 
-### 4. Шаг выведем в личном кабинете пользователей 
+### 4. Шаг выведем в личном кабинете пользователей их купон [user_coupon_name], статистику заков [user_related_orders] и общую статистику [user_total_orders]
+Добавье шорткоды в личном кабинете пользователя и стилизуйте их на своё усмотрение.
+
+Например, для шорткода [user_related_orders], css код:
+
+selector .apply-buttons{background-color:#61C6CC;margin-top:10px;}
+selector .apply-buttons:hover{background-color:#5AB9BE;}
+selector .filter-select{border:2px solid #61C6CC;border-radius:10px;padding:8px 10px;width:230px;margin-top:2px;}
+selector .selected-month-year-title{font-weight:bold;margin-top:30px;margin-bottom:8px;}
+selector .payout{margin-top:16px;padding:10px 18px;background:#E5D4EF;border-radius:8px;font-size:15px;width:fit-content;}
+.user-related-orders ul{list-style-type:none;padding:0;margin:0px 0px;}
+.other-statuses-title{margin-top:20px;color:#989898;margin-bottom:8px;font-size:15px;}
+.other-statuses-list{color:#989898;font-size:14px;}
+.other-statuses-none{color:#989898;font-size:15px;margin-bottom:8px;}
+.user-related-orders ul li {
+    border-bottom: 2px dotted #bbbbbb; 
+    padding-top:4px;}
+.user-related-orders ul li:last-child {
+    border-bottom: none;}
+.reward-note {font-size: 14px; color: #555;margin-top: 20px;}
 
 
-
+<img width="500" alt="Снимок экрана 2025-05-08 в 20 32 45" src="https://github.com/user-attachments/assets/0df15666-26b1-46a6-ae0f-5aca33acb857" />
 
 
 
