@@ -55,7 +55,7 @@ class AmbassadorCouponProgram {
                     echo __('Н/Д', 'brand-ambassador');
                 }
             } else {
-                echo __('', 'brand-ambassador');
+                echo __('Н/Д', 'brand-ambassador');
             }
         }
     }
