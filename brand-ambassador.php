@@ -1,12 +1,15 @@
 <?php
 /**
- * Plugin Name:      Амбассадор бренда
- * Version:          1.0.0
- * Text Domain:      brand-ambassador
- * Plugin URI:       https://github.com/avs-alexandra/brand-ambassador
- * Description:      Программа амбассадор бренда с функционалом купонов WooCommerce.
- * Author:           LDOG
- * Requires Plugins: woocommerce
+ * Plugin Name: Brand Ambassador
+ * Plugin URI: https://github.com/avs-alexandra/brand-ambassador
+ * Description: Плагин для WooCommerce, который помогает управлять программой амбассадоров бренда с функционалом купонов и выплат.
+ * Version: 1.0.1
+ * Author: avs-alexandra
+ * Author URI: https://github.com/avs-alexandra
+ * License: GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain: brand-ambassador
+ * Domain Path: /languages
  */
 
 if (!defined('ABSPATH')) exit; // Запрет прямого доступа
