@@ -41,24 +41,23 @@ class AmbassadorCouponProgram {
         return $columns;
     }
 
-    /**
-     * Отображение данных в столбце "Амбассадор" в таблице купонов
-     */
-    public function render_user_column_in_coupon_table($column, $post_id) {
-        if ($column === 'associated_user') {
-            $user_id = get_post_meta($post_id, '_ambassador_user', true);
-            if ($user_id) {
-                $user = get_userdata($user_id);
-                if ($user) {
-                    echo '<a href="' . esc_url(get_edit_user_link($user_id)) . '">' . esc_html($user->display_name) . ' (' . esc_html($user->user_email) . ')</a>';
-                } else {
-                    echo __('Н/Д', 'brand-ambassador');
-                }
+   /**
+ * Отображение данных в столбце "Амбассадор" в таблице купонов
+ */
+public function render_user_column_in_coupon_table($column, $post_id) {
+    if ($column === 'associated_user') {
+        $user_id = get_post_meta($post_id, '_ambassador_user', true);
+        if ($user_id) {
+            $user = get_userdata($user_id);
+            if ($user) {
+                echo '<a href="' . esc_url(get_edit_user_link($user_id)) . '">' . esc_html($user->display_name) . ' (' . esc_html($user->user_email) . ')</a>';
             } else {
-                echo __('Н/Д', 'brand-ambassador');
+                echo __('Н/Д', 'brand-ambassador'); // Если пользователь не найден
             }
-        }
+        } 
+        // Если $user_id пуст, то ничего не выводится
     }
+}
 
     /**
      * Добавление поля пользователя в настройках купона
