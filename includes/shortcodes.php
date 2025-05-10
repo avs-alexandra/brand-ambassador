@@ -416,6 +416,11 @@ function render_bank_data_form() {
         <p>
             <button type="submit" name="submit_bank_data" class="button button-save"><?php _e('Сохранить', 'brand-ambassador'); ?></button>
         </p>
+        <?php if (!empty($encrypted_card_number)) : ?>
+            <p>
+                <button type="submit" name="delete_bank_data" class="button deleted-bank"><?php _e('Удалить данные карты', 'brand-ambassador'); ?></button>
+            </p>
+        <?php endif; ?>
     </form>
     <?php
     return ob_get_clean();
@@ -423,27 +428,74 @@ function render_bank_data_form() {
 
 add_action('init', 'process_bank_data_form');
 function process_bank_data_form() {
-    if (!is_user_logged_in() || !isset($_POST['submit_bank_data'])) {
+    if (!is_user_logged_in()) {
         return;
     }
 
-    if (!isset($_POST['bank_data_nonce']) || !wp_verify_nonce($_POST['bank_data_nonce'], 'save_bank_data')) {
-        wp_die(__('Ошибка безопасности. Попробуйте снова.', 'brand-ambassador'));
+    $user_id = get_current_user_id();
+
+    if (isset($_POST['submit_bank_data'])) {
+        if (!isset($_POST['bank_data_nonce']) || !wp_verify_nonce($_POST['bank_data_nonce'], 'save_bank_data')) {
+            wp_die(__('Ошибка безопасности. Попробуйте снова.', 'brand-ambassador'));
+        }
+
+        $card_number = sanitize_text_field($_POST['card_number']);
+        $bank_name = sanitize_text_field($_POST['bank_name']);
+
+        if (!preg_match('/^\d{16}$/', $card_number)) {
+            wp_die(__('Номер карты должен содержать 16 цифр.', 'brand-ambassador'));
+        }
+
+        // Используем статический вызов функции encrypt_data
+        $encrypted_card_number = AmbassadorSettingsPage::encrypt_data($card_number);
+        update_user_meta($user_id, 'user_numbercartbank', $encrypted_card_number);
+        update_user_meta($user_id, 'user_bankname', $bank_name);
+
+        wp_redirect(add_query_arg('success', '1', wp_get_referer()));
+        exit;
+    }
+
+    if (isset($_POST['delete_bank_data'])) {
+        if (!isset($_POST['bank_data_nonce']) || !wp_verify_nonce($_POST['bank_data_nonce'], 'save_bank_data')) {
+            wp_die(__('Ошибка безопасности. Попробуйте снова.', 'brand-ambassador'));
+        }
+
+        // Удаляем мета-данные пользователя
+        delete_user_meta($user_id, 'user_numbercartbank');
+        delete_user_meta($user_id, 'user_bankname');
+
+        wp_redirect(add_query_arg('deleted', '1', wp_get_referer()));
+        exit;
+    }
+}
+
+/**
+ * Шорткод [ambassador_card_number] для вывода последних 4 цифр банковской карты.
+ */
+add_shortcode('ambassador_card_number', 'render_ambassador_card_number');
+
+function render_ambassador_card_number() {
+    if (!is_user_logged_in()) {
+        return ''; // Если пользователь не авторизован, ничего не выводим
     }
 
     $user_id = get_current_user_id();
-    $card_number = sanitize_text_field($_POST['card_number']);
-    $bank_name = sanitize_text_field($_POST['bank_name']);
+    $encrypted_card_number = get_user_meta($user_id, 'user_numbercartbank', true);
 
-    if (!preg_match('/^\d{16}$/', $card_number)) {
-        wp_die(__('Номер карты должен содержать 16 цифр.', 'brand-ambassador'));
+    if (empty($encrypted_card_number)) {
+        return ''; // Если карта не добавлена, ничего не выводим
     }
 
-    // Используем статический вызов функции encrypt_data
-    $encrypted_card_number = AmbassadorSettingsPage::encrypt_data($card_number);
-    update_user_meta($user_id, 'user_numbercartbank', $encrypted_card_number);
-    update_user_meta($user_id, 'user_bankname', $bank_name);
+    // Расшифровываем номер карты
+    $card_number = AmbassadorSettingsPage::decrypt_data($encrypted_card_number);
 
-    wp_redirect(add_query_arg('success', '1', wp_get_referer()));
-    exit;
+    if (empty($card_number)) {
+        return ''; // Если номер карты пустой после расшифровки, ничего не выводим
+    }
+
+    // Получаем последние 4 цифры карты
+    $last_four_digits = substr($card_number, -4);
+
+    // Возвращаем отформатированный вывод
+   return '<div class="ambassador-card-number"><p>' . sprintf(__('**** **** **** %s', 'brand-ambassador'), esc_html($last_four_digits)) . '</p></div>';
 }
