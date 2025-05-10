@@ -9,8 +9,38 @@ class AmbassadorSettingsPage {
         add_action('admin_init', [$this, 'register_settings']);
         // Проверка на совпадение ролей
         add_action('admin_notices', [$this, 'check_duplicate_roles']);
-        // Регистрируем хук для удаления данных при удалении плагина
-        register_uninstall_hook(__FILE__, [__CLASS__, 'delete_plugin_data']);
+    }
+    
+      // Генерация и сохранение ключа шифрования
+    public static function generate_encryption_key() {
+        if (!get_option('brand_ambassador_encryption_key')) {
+            $key = bin2hex(random_bytes(32)); // Генерация 256-битного ключа
+            add_option('brand_ambassador_encryption_key', $key);
+        }
+    }
+
+    // Получение ключа шифрования
+    public static function get_encryption_key() {
+        $key = get_option('brand_ambassador_encryption_key');
+        if (!$key) {
+            wp_die(__('Ключ шифрования не найден. Пожалуйста, активируйте плагин заново.', 'brand-ambassador'));
+        }
+        return $key;
+    }
+
+    // Функция шифрования данных
+    public static function encrypt_data($data) {
+        $key = self::get_encryption_key(); // Получаем ключ шифрования
+        $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length('aes-256-cbc')); // Генерация IV
+        $encrypted_data = openssl_encrypt($data, 'aes-256-cbc', $key, 0, $iv);
+        return base64_encode($encrypted_data . '::' . $iv); // Сохранение IV вместе с данными
+    }
+
+    // Функция дешифрования данных
+    public static function decrypt_data($encrypted_data) {
+        $key = self::get_encryption_key();
+        list($encrypted_data, $iv) = explode('::', base64_decode($encrypted_data), 2);
+        return openssl_decrypt($encrypted_data, 'aes-256-cbc', $key, 0, $iv);
     }
 
     /**
@@ -221,7 +251,7 @@ class AmbassadorSettingsPage {
         <?php
     }
 
-    /**
+     /**
      * Удаление данных плагина
      */
     public static function delete_plugin_data() {
@@ -238,10 +268,13 @@ class AmbassadorSettingsPage {
             delete_option('expert_role');
             delete_option('blogger_reward');
             delete_option('expert_reward');
-            delete_option('ambassador_email_subject'); // Удаление темы письма
-            delete_option('ambassador_email_template'); // Удаление текста письма
-            delete_option('ambassador_email_font'); // Удаление шрифта
+            delete_option('ambassador_email_subject');
+            delete_option('ambassador_email_template');
+            delete_option('ambassador_email_font');
+            delete_option('brand_ambassador_encryption_key'); // Удаление ключа шифрования
         }
     }
-
 }
+// Регистрация хуков активации и удаления — вне класса
+register_activation_hook(plugin_dir_path(__DIR__) . 'brand-ambassador.php', ['AmbassadorSettingsPage', 'generate_encryption_key']);
+register_uninstall_hook(plugin_dir_path(__DIR__) . 'brand-ambassador.php', ['AmbassadorSettingsPage', 'delete_plugin_data']);
