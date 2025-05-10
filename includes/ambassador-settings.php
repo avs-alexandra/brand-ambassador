@@ -147,6 +147,9 @@ class AmbassadorSettingsPage {
                 <table class="form-table">
                     <!-- Добавлено уведомление -->
                     <tr>
+                        <p style="color: #000;">
+                            <?php _e('Шорткоды:<br>[user_coupon_name] - Купон Амбассадора <br>[user_related_orders] - Статистика заказов Амбассадора <br>[user_total_orders] - Общая статистика Амбассадора <br>[ambassador_bank_form] - Форма ввода банковской карты Амбассадора <br>[ambassador_card_number] - Отобразить последние 4 цифры номера карты', 'brand-ambassador'); ?>
+                        </p>
                         <p style="color: #646970;">
                             <?php _e('Выберите разные роли для уровней Блогер и Эксперт для корректного расчёта выплат. (Cоздать новые роли можно с помощью плагина User Role Editor)', 'brand-ambassador'); ?>
                         </p>
