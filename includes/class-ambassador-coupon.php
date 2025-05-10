@@ -201,8 +201,12 @@ public function show_user_coupon($user) {
         }
 
         // Метаполя для номера банковской карты и банка
-        $user_numbercartbank = get_user_meta($user->ID, 'user_numbercartbank', true);
+        $encrypted_numbercartbank = get_user_meta($user->ID, 'user_numbercartbank', true);
         $user_bankname = get_user_meta($user->ID, 'user_bankname', true);
+
+        // Расшифровка номера карты и отображение только последних 4 цифр
+        $user_numbercartbank = !empty($encrypted_numbercartbank) ? AmbassadorSettingsPage::decrypt_data($encrypted_numbercartbank) : '';
+        $masked_numbercartbank = !empty($user_numbercartbank) ? str_repeat('*', strlen($user_numbercartbank) - 4) . substr($user_numbercartbank, -4) : '';
 
         echo '<h3>' . __('Банковские реквизиты', 'brand-ambassador') . '</h3>';
         ?>
@@ -210,13 +214,13 @@ public function show_user_coupon($user) {
             <tr>
                 <th><label for="user_numbercartbank"><?php _e('Номер банковской карты', 'brand-ambassador'); ?></label></th>
                 <td>
-                    <input type="text" name="user_numbercartbank" id="user_numbercartbank" value="<?php echo esc_attr($user_numbercartbank); ?>" class="regular-text" />
+                    <input type="text" name="user_numbercartbank" id="user_numbercartbank" value="<?php echo esc_attr($masked_numbercartbank); ?>" class="regular-text" readonly />
                 </td>
             </tr>
             <tr>
                 <th><label for="user_bankname"><?php _e('Наименование банка', 'brand-ambassador'); ?></label></th>
                 <td>
-                    <input type="text" name="user_bankname" id="user_bankname" value="<?php echo esc_attr($user_bankname); ?>" class="regular-text" />
+                    <input type="text" name="user_bankname" id="user_bankname" value="<?php echo esc_attr($user_bankname); ?>" class="regular-text" readonly />
                 </td>
             </tr>
         </table>
