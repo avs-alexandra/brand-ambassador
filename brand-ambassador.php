@@ -17,6 +17,9 @@ if (!defined('ABSPATH')) exit; // Запрет прямого доступа
 // Подключаем основной класс плагина
 require_once plugin_dir_path(__FILE__) . 'includes/class-ambassador-coupon.php';
 
+// Подключаем страницу настроек
+require_once plugin_dir_path(__FILE__) . 'includes/ambassador-settings.php';
+
 // Подключаем шорткоды и опцию в купоне только на первый заказ
 require_once plugin_dir_path(__FILE__) . 'includes/shortcodes.php';
 
@@ -25,9 +28,6 @@ require_once plugin_dir_path(__FILE__) . 'includes/class-coupon-payouts-handler.
 
 // Подключаем страницу для админки в WooCommerce
 require_once plugin_dir_path(__FILE__) . 'includes/class-coupon-payouts-page.php';
-
-// Подключаем страницу настроек
-require_once plugin_dir_path(__FILE__) . 'includes/ambassador-settings.php';
 
 // Подключаем класс уведомлений
 require_once plugin_dir_path(__FILE__) . 'includes/class-ambassador-notifications.php';
