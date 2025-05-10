@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Не шорткод. Добавляем возможность купону только для первой покупки
  */
@@ -42,8 +41,6 @@ function save_coupon_option_first_order_checkbox($post_id) {
     update_post_meta($post_id, 'only_first_order', $only_first_order);
 }
 
-
-
 /**
  * Шорткод [user_coupon_name] наименование купона в личный кабинет амбассадора бренда.
  */
@@ -71,8 +68,6 @@ function get_user_coupon_name() {
 
 // Регистрация шорткода для вывода названия купона
 add_shortcode('user_coupon_name', 'get_user_coupon_name');
-
-
 
 /**
  * Шорткод [user_related_orders] для вывода заказов в личном кабинете амбассадора бренда.
@@ -295,7 +290,6 @@ add_shortcode('user_related_orders', function () {
 });
 
 
-
 /**
  * Шорткод [user_total_orders] для вывода общего количества заказов и общей суммы комиссии за всё время.
  */
@@ -387,3 +381,69 @@ add_shortcode('user_total_orders', function () {
 
     return ob_get_clean();
 });
+
+
+
+/**
+ * Регистрируем шорткод [ambassador_bank_form] для формы банковских данных
+ */
+add_shortcode('ambassador_bank_form', 'render_bank_data_form');
+
+function render_bank_data_form() {
+    if (!is_user_logged_in()) {
+        return '<p>' . __('Пожалуйста, войдите, чтобы заполнить банковские данные.', 'brand-ambassador') . '</p>';
+    }
+
+    $user_id = get_current_user_id();
+    $encrypted_card_number = get_user_meta($user_id, 'user_numbercartbank', true);
+    $bank_name = get_user_meta($user_id, 'user_bankname', true);
+
+    $card_number = !empty($encrypted_card_number) ? AmbassadorSettingsPage::decrypt_data($encrypted_card_number) : '';
+    $masked_card_number = !empty($card_number) ? str_repeat('*', strlen($card_number) - 4) . substr($card_number, -4) : '';
+
+    ob_start();
+    ?>
+    <form method="post" action="">
+        <?php wp_nonce_field('save_bank_data', 'bank_data_nonce'); ?>
+        <p>
+            <label for="card_number" class="header-formbank"><?php _e('Номер банковской карты', 'brand-ambassador'); ?></label><br>
+            <input type="text" name="card_number" id="card_number" class="input-bank" placeholder="0000 0000 0000 0000" value="<?php echo esc_attr($masked_card_number); ?>" maxlength="16" required />
+        </p>
+        <p>
+            <label for="bank_name" class="header-formbank"><?php _e('Наименование банка', 'brand-ambassador'); ?></label><br>
+            <input type="text" name="bank_name" id="bank_name" class="input-bank" placeholder="сбер" value="<?php echo esc_attr($bank_name); ?>" required />
+        </p>
+        <p>
+            <button type="submit" name="submit_bank_data" class="button button-save"><?php _e('Сохранить', 'brand-ambassador'); ?></button>
+        </p>
+    </form>
+    <?php
+    return ob_get_clean();
+}
+
+add_action('init', 'process_bank_data_form');
+function process_bank_data_form() {
+    if (!is_user_logged_in() || !isset($_POST['submit_bank_data'])) {
+        return;
+    }
+
+    if (!isset($_POST['bank_data_nonce']) || !wp_verify_nonce($_POST['bank_data_nonce'], 'save_bank_data')) {
+        wp_die(__('Ошибка безопасности. Попробуйте снова.', 'brand-ambassador'));
+    }
+
+    $user_id = get_current_user_id();
+    $card_number = sanitize_text_field($_POST['card_number']);
+    $bank_name = sanitize_text_field($_POST['bank_name']);
+
+    if (!preg_match('/^\d{16}$/', $card_number)) {
+        wp_die(__('Номер карты должен содержать 16 цифр.', 'brand-ambassador'));
+    }
+
+    // Используем статический вызов функции encrypt_data
+    $encrypted_card_number = AmbassadorSettingsPage::encrypt_data($card_number);
+    update_user_meta($user_id, 'user_numbercartbank', $encrypted_card_number);
+    update_user_meta($user_id, 'user_bankname', $bank_name);
+
+    wp_redirect(add_query_arg('success', '1', wp_get_referer()));
+    exit;
+}
