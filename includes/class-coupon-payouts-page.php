@@ -41,6 +41,12 @@ private function get_minimum_order_year() {
      * Рендеринг страницы выплат
      */
     public function render_payouts_page() {
+        // Проверяем доступ через фильтр
+        $has_access = apply_filters('coupon_payouts_page_access', current_user_can('manage_woocommerce'));
+
+        if (!$has_access) {
+            wp_die(__('У вас недостаточно прав для доступа к этой странице.', 'brand-ambassador'));
+        }
         // Редирект, если параметры m и y отсутствуют
         if (!isset($_GET['m']) || !isset($_GET['y'])) {
         wp_redirect(add_query_arg(['m' => 0, 'y' => date('Y')], admin_url('admin.php?page=coupon-payouts')));
