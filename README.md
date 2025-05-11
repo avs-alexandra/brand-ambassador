@@ -1,7 +1,7 @@
 # brand-ambassador
 ## Амбассадор бренда для Woocommerce
 
-<a href="https://github.com/avs-alexandra/brand-ambassador/releases/download/v1.0.2/brand-ambassador.zip">Скачать плагин</a>
+<a href="https://github.com/avs-alexandra/brand-ambassador/releases/download/v1.0.3/brand-ambassador.zip">Скачать плагин</a>
 
 Лёгкий, но функциональный плагин для программы Амбассадор бренда для Woocommerce.
 <br>Суть: компания приглашает к сотрудничеству Амбассадоров бренда и предоставляет личный купон. 
@@ -97,6 +97,10 @@ ________________________________________________________________________________
 ### 6. Обработка и защита персональных данных
 Добавье в раздел "Обработка и защита персональных данных"
 <br>"Все номера банковских карт шифруются с использованием алгоритма AES-256-CBC, который является одним из самых надёжных стандартов шифрования."
-
-
+<br>Ограничьте доступ к странице выплат для лучшей безопасности персональных данных. 
+<br>Добавье сниппет-код:
+`//доступ к странице выплат по купонам
+add_filter('coupon_payouts_page_access', function($has_access) {
+    return current_user_can('administrator') || current_user_can('shop_manager');
+});`
 
