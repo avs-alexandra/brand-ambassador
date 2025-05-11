@@ -105,5 +105,6 @@ ________________________________________________________________________________
 //доступ к странице выплат по купонам
 add_filter('coupon_payouts_page_access', function($has_access) {
     return current_user_can('administrator') || current_user_can('shop_manager');
-});```
+});
+```
 
