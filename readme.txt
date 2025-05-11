@@ -4,7 +4,7 @@ Tags: woocommerce, coupons, ambassador, affiliate
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -34,6 +34,9 @@ Brand Ambassador — это плагин для WordPress, который доб
 Нет, плагин предназначен только для сайтов WooCommerce.
 
 == Changelog ==
+= 1.0.3 =
+* Добавлено: Фильтр `coupon_payouts_page_access` для ограничения доступа к странице выплат по купонам.
+
 = 1.0.2 =
 * Добавлено: Шифрование данных банковских карт.
 * Добавлено: Шорткод формы ввода банковских реквизитов `[ambassador_bank_form]`.
@@ -49,6 +52,9 @@ Brand Ambassador — это плагин для WordPress, который доб
 * Реализована страница выплат в админке.
 
 == Upgrade Notice ==
+= 1.0.3 =
+* Обновите до версии 1.0.3 для использования фильтра `coupon_payouts_page_access` для ограничения доступа к странице выплат.
+
 = 1.0.2 =
 * Обновите до версии 1.0.2 для поддержки шифрования банковских данных и новых шорткодов для управления банковскими реквизитами.
 
