@@ -79,7 +79,7 @@ class AmbassadorNotifications {
         ]);
 
         // Возвращаем текст письма с применением шрифта
-        return '<div style="font-family: ' . esc_attr($email_font) . '; padding: 40px; font-size: 15px;">' . wpautop($email_body) . '</div>';
+        return '<tr><td style="font-family: ' . esc_attr($email_font) . '; padding: 40px; font-size: 15px;">' . wpautop($email_body) . '</td></tr>';
     }
 
     /**
@@ -126,7 +126,19 @@ class AmbassadorNotifications {
         ]);
 
         // Объединяем шапку, тело и подвал
-        $wrapped_message = $header . $message . $footer;
+        $wrapped_message = '
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#f5f5f5;">
+                <tr>
+                    <td align="center">
+                        <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color:#ffffff;border:1px solid #dedede;border-radius:3px;">
+                            ' . $header . '
+                            ' . $message . '
+                            ' . $footer . '
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        ';
 
         // Заголовки
         $headers = ['Content-Type: text/html; charset=UTF-8'];
