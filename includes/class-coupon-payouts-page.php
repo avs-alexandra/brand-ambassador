@@ -49,7 +49,7 @@ class CouponPayoutsPage {
         }
         // Редирект, если параметры m и y отсутствуют
         if (!isset($_GET['m']) || !isset($_GET['y'])) {
-            wp_redirect(add_query_arg(['m' => 0, 'y' => date('Y')], admin_url('admin.php?page=coupon-payouts')));
+            wp_safe_redirect(add_query_arg(['m' => 0, 'y' => date('Y')], admin_url('admin.php?page=coupon-payouts')));
             exit;
         }
         // Получаем результат расчёта из transient
