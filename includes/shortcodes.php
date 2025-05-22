@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Не шорткод. Добавляем возможность купону только для первой покупки
  */
@@ -197,7 +198,7 @@ add_shortcode('user_related_orders', function () {
     echo '</form>';
 
     // Заголовок с выбранным месяцем и годом
-    echo '<h3 class="selected-month-year-title">' . sprintf(__('Заказы со статусом выполнен* за %s %d:', 'brand-ambassador'), date_i18n('F', mktime(0, 0, 0, $month, 10)), $year) . '</h3>';
+    echo '<h3 class="selected-month-year-title">' . esc_html(sprintf(__('Заказы со статусом выполнен* за %s %d:', 'brand-ambassador'), date_i18n('F', mktime(0, 0, 0, $month, 10)), $year)) . '</h3>';
 
     if (empty($orders_completed)) {
         // Если заказов нет
@@ -219,11 +220,11 @@ add_shortcode('user_related_orders', function () {
                     $order_count++;
                     echo '<li>';
                     echo sprintf(
-                    __('№%d от %s c купоном: %s — %s', 'brand-ambassador'),
-                    $order->get_id(),
-                    date_i18n(get_option('date_format'), strtotime($order->get_date_created())),
-                    $coupon_code,
-                    $payout_label
+                     __('№%d от %s c купоном: %s — %s', 'brand-ambassador'),
+                    (int) $order->get_id(),
+                      esc_html(date_i18n(get_option('date_format'), strtotime($order->get_date_created()))),
+                      esc_html($coupon_code),
+                      esc_html($payout_label)
                     );
                     echo '</li>';
                 }
@@ -240,14 +241,16 @@ add_shortcode('user_related_orders', function () {
             $total_reward = $order_count * $reward_per_order;
 
             // Вывод информации о выплате
-            echo '<p class="payout">' . sprintf(
-                __('Выплата за %s %d составит %d * %dруб = %dруб', 'brand-ambassador'),
-                date_i18n('F', mktime(0, 0, 0, $month, 10)),
-                $year,
-                $order_count,
-                $reward_per_order,
-                $total_reward
-            ) . '</p>';
+            echo '<p class="payout">' . esc_html(
+             sprintf(
+             __('Выплата за %s %d составит %d * %dруб = %dруб', 'brand-ambassador'),
+             date_i18n('F', mktime(0, 0, 0, $month, 10)),
+            $year,
+            $order_count,
+            $reward_per_order,
+            $total_reward
+        )
+       ) . '</p>';
         }
     }
 
@@ -269,10 +272,10 @@ add_shortcode('user_related_orders', function () {
                 if (in_array(strtolower($coupon_code), $related_coupons, true)) {
                     echo '<li>';
                     echo sprintf(
-                        __('№%d от %s, Статус: %s', 'brand-ambassador'),
-                        $order->get_id(),
-                        date_i18n(get_option('date_format'), strtotime($order->get_date_created())),
-                        wc_get_order_status_name($order->get_status()) // Получаем статус заказа
+                     __('№%d от %s, Статус: %s', 'brand-ambassador'),
+                    (int) $order->get_id(),
+                     esc_html(date_i18n(get_option('date_format'), strtotime($order->get_date_created()))),
+                     esc_html(wc_get_order_status_name($order->get_status()))
                     );
                     echo '</li>';
                 }
@@ -375,10 +378,9 @@ add_shortcode('user_total_orders', function () {
 
     echo '<div class="user-total-orders">';
     echo '<h3 class="user-statistics-title">'. __('За весь период', 'brand-ambassador') . '</h3>';
-    echo '<p>' . sprintf(__('Всего заказов с вашим купоном: %d', 'brand-ambassador'), $order_count) . '</p>';
-    echo '<p>' . sprintf(__('Общая сумма вознаграждения: %dруб', 'brand-ambassador'), $total_reward) . '</p>';
+    echo '<p>' . esc_html(sprintf(__('Всего заказов с вашим купоном: %d', 'brand-ambassador'), $order_count)) . '</p>';
+    echo '<p>' . esc_html(sprintf(__('Общая сумма вознаграждения: %dруб', 'brand-ambassador'), $total_reward)) . '</p>';
     echo '</div>';
-
     return ob_get_clean();
 });
 
@@ -406,19 +408,19 @@ function render_bank_data_form() {
     <form method="post" action="">
         <?php wp_nonce_field('save_bank_data', 'bank_data_nonce'); ?>
         <p>
-            <label for="card_number" class="header-formbank"><?php _e('Номер банковской карты', 'brand-ambassador'); ?></label><br>
+            <label for="card_number" class="header-formbank"><?php esc_html_e('Номер банковской карты', 'brand-ambassador'); ?></label><br>
             <input type="text" name="card_number" id="card_number" class="input-bank" placeholder="0000 0000 0000 0000" value="<?php echo esc_attr($masked_card_number); ?>" maxlength="16" required />
         </p>
         <p>
-            <label for="bank_name" class="header-formbank"><?php _e('Наименование банка', 'brand-ambassador'); ?></label><br>
+            <label for="bank_name" class="header-formbank"><?php esc_html_e('Наименование банка', 'brand-ambassador'); ?></label><br>
             <input type="text" name="bank_name" id="bank_name" class="input-bank" placeholder="сбер" value="<?php echo esc_attr($bank_name); ?>" required />
         </p>
         <p>
-            <button type="submit" name="submit_bank_data" class="button button-save"><?php _e('Сохранить', 'brand-ambassador'); ?></button>
+            <button type="submit" name="submit_bank_data" class="button button-save"><?php esc_html_e('Сохранить', 'brand-ambassador'); ?></button>
         </p>
         <?php if (!empty($encrypted_card_number)) : ?>
             <p>
-                <button type="submit" name="delete_bank_data" class="button deleted-bank"><?php _e('Удалить данные карты', 'brand-ambassador'); ?></button>
+                <button type="submit" name="delete_bank_data" class="button deleted-bank"><?php esc_html_e('Удалить данные карты', 'brand-ambassador'); ?></button>
             </p>
         <?php endif; ?>
     </form>
