@@ -33,7 +33,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/class-coupon-payouts-page.php
 require_once plugin_dir_path(__FILE__) . 'includes/class-ambassador-notifications.php';
 
 // Инициализация плагина
-function initialize_brand_ambassador() {
+function branam_initialize_brand_ambassador() {
     // Логика выплат
     $payouts_handler = new CouponPayoutsHandler();
     add_action('admin_post_save_payout_status', [$payouts_handler, 'save_payout_status']);
@@ -49,4 +49,4 @@ function initialize_brand_ambassador() {
     // Уведомления
     new AmbassadorNotifications(); // Уведомления для Амбассадоров
 }
-add_action('plugins_loaded', 'initialize_brand_ambassador');
+add_action('plugins_loaded', 'branam_initialize_brand_ambassador');
