@@ -28,7 +28,7 @@ class CouponPayoutsHandler {
 
         // Проверяем, выбраны ли заказы
         if (empty($selected_orders)) {
-            wp_redirect(add_query_arg(['message' => 'no_orders'], wp_get_referer()));
+            wp_safe_redirect(add_query_arg(['message' => 'no_orders'], wp_get_referer()));
             exit;
         }
 
@@ -44,7 +44,7 @@ class CouponPayoutsHandler {
 
         // Если выбранные строки имеют разные статусы
         if (count($unique_statuses) > 1) {
-            wp_redirect(add_query_arg(['message' => 'mixed_statuses'], wp_get_referer()));
+            wp_safe_redirect(add_query_arg(['message' => 'mixed_statuses'], wp_get_referer()));
             exit;
         }
 
