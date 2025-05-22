@@ -436,8 +436,17 @@ function process_bank_data_form() {
 
     $user_id = get_current_user_id();
 
+    // Проверка прав пользователя
+    // Только сам пользователь или администратор может редактировать свои банковские данные
+    if ( ! current_user_can( 'edit_user', $user_id ) ) {
+        wp_die(__('Недостаточно прав для выполнения действия.', 'brand-ambassador'));
+    }
+
     if (isset($_POST['submit_bank_data'])) {
-        if (!isset($_POST['bank_data_nonce']) || !wp_verify_nonce($_POST['bank_data_nonce'], 'save_bank_data')) {
+        if (
+            !isset($_POST['bank_data_nonce']) ||
+            !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['bank_data_nonce'])), 'save_bank_data')
+        ) {
             wp_die(__('Ошибка безопасности. Попробуйте снова.', 'brand-ambassador'));
         }
 
@@ -458,7 +467,10 @@ function process_bank_data_form() {
     }
 
     if (isset($_POST['delete_bank_data'])) {
-        if (!isset($_POST['bank_data_nonce']) || !wp_verify_nonce($_POST['bank_data_nonce'], 'save_bank_data')) {
+        if (
+            !isset($_POST['bank_data_nonce']) ||
+            !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['bank_data_nonce'])), 'save_bank_data')
+        ) {
             wp_die(__('Ошибка безопасности. Попробуйте снова.', 'brand-ambassador'));
         }
 
