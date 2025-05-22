@@ -240,12 +240,12 @@ class AmbassadorSettingsPage {
                             <label for="ambassador_delete_meta">
                                 <?php esc_html_e('Удалить метаполя, которые создал плагин', 'brand-ambassador'); ?></label>
                                 <ul>
-                                    <li><strong>_ambassador_user</strong>: Связь между купоном и пользователем (ID пользователя).</li>
-                                    <li><strong>only_first_order</strong>: Чекбокс в купоне, который действует только для первого заказа.</li>
-                                    <li><strong>_user_coupon</strong>: Связь между пользователем и купоном (ID купона).</li>
-                                    <li><strong>user_numbercartbank</strong>: Номер банковской карты пользователя.</li>
-                                    <li><strong>user_bankname</strong>: Название банка пользователя.</li>
-                                    <li><strong>_payout_status</strong>: Статус выплаты.</li>
+                                    <li><strong>_branam_ambassador_user</strong>: Связь между купоном и пользователем (ID пользователя).</li>
+                                    <li><strong>branam_only_first_order</strong>: Чекбокс в купоне, который действует только для первого заказа.</li>
+                                    <li><strong>_branam_user_coupon</strong>: Связь между пользователем и купоном (ID купона).</li>
+                                    <li><strong>branam_user_numbercartbank</strong>: Номер банковской карты пользователя.</li>
+                                    <li><strong>branam_user_bankname</strong>: Название банка пользователя.</li>
+                                    <li><strong>_branam_payout_status</strong>: Статус выплаты.</li>
                                 </ul>
                         </td>
                     </tr>
@@ -264,8 +264,8 @@ class AmbassadorSettingsPage {
             global $wpdb;
 
             // Удаление метаполей
-            $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE meta_key IN ('_ambassador_user', 'only_first_order', '_payout_status')");
-            $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('_user_coupon', 'user_numbercartbank', 'user_bankname')");
+            $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE meta_key IN ('_branam_ambassador_user', 'branam_only_first_order', '_branam_payout_status')");
+            $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('_branam_user_coupon', 'branam_user_numbercartbank', 'branam_user_bankname')");
 
             // Удаление опций
             delete_option('ambassador_delete_meta');
