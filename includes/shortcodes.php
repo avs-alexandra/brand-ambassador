@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 add_filter('woocommerce_coupon_get_discount_amount', 'branam_apply_coupon_only_first_order_with_removal', 10, 5);
 function branam_apply_coupon_only_first_order_with_removal($discount, $discounting_amount, $cart_item, $single, $coupon) {
     // Проверяем, активирован ли флаг "Только для первого заказа"
-    if (get_post_meta($coupon->get_id(), 'only_first_order', true) === 'yes') {
+    if (get_post_meta($coupon->get_id(), 'branam_only_first_order', true) === 'yes') {
         $user_orders = wc_get_orders([
             'customer_id' => get_current_user_id(),
             'limit' => 1, // Проверяем только первый заказ
@@ -30,7 +30,7 @@ function branam_apply_coupon_only_first_order_with_removal($discount, $discounti
 add_action('woocommerce_coupon_options', 'branam_add_coupon_option_first_order_checkbox');
 function branam_add_coupon_option_first_order_checkbox() {
     woocommerce_wp_checkbox([
-        'id' => 'only_first_order',
+        'id' => 'branam_only_first_order',
         'label' => __('Только для первого заказа', 'brand-ambassador'),
         'description' => __('Применять купон только к первому заказу пользователя.', 'brand-ambassador'),
     ]);
@@ -38,8 +38,8 @@ function branam_add_coupon_option_first_order_checkbox() {
 //Сохраняем значение галочки "Только для первого заказа".
 add_action('woocommerce_coupon_options_save', 'branam_save_coupon_option_first_order_checkbox');
 function branam_save_coupon_option_first_order_checkbox($post_id) {
-    $only_first_order = isset($_POST['only_first_order']) ? 'yes' : 'no';
-    update_post_meta($post_id, 'only_first_order', $only_first_order);
+    $only_first_order = isset($_POST['branam_only_first_order']) ? 'yes' : 'no';
+    update_post_meta($post_id, 'branam_only_first_order', $only_first_order);
 }
 
 /**
@@ -51,8 +51,8 @@ function branam_get_user_coupon_name() {
         return __('Пользователь не авторизован.', 'brand-ambassador');
     }
 
-    // Получить ID связанного купона из метаполя _user_coupon
-    $coupon_id = get_user_meta($user_id, '_user_coupon', true);
+    // Получить ID связанного купона из метаполя _branam_user_coupon
+    $coupon_id = get_user_meta($user_id, '_branam_user_coupon', true);
     if (!$coupon_id) {
         return __('Купон не найден.', 'brand-ambassador');
     }
@@ -86,10 +86,10 @@ add_shortcode('user_related_orders', function () {
     $current_user_id = $current_user->ID;
 
     // Получаем роли и размеры выплат из настроек
-    $blogger_role = get_option('blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
-    $expert_role = get_option('expert_role', 'subscriber'); // Роль для экспертов (по умолчанию subscriber)
-    $blogger_reward = get_option('blogger_reward', 450); // Выплата для блогеров (по умолчанию 450)
-    $expert_reward = get_option('expert_reward', 600); // Выплата для экспертов (по умолчанию 600)
+    $blogger_role = get_option('branam_blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
+    $expert_role = get_option('branam_expert_role', 'subscriber'); // Роль для экспертов (по умолчанию subscriber)
+    $blogger_reward = get_option('branam_blogger_reward', 450); // Выплата для блогеров (по умолчанию 450)
+    $expert_reward = get_option('branam_expert_reward', 600); // Выплата для экспертов (по умолчанию 600)
 
     // Проверяем роли пользователя и устанавливаем вознаграждение
     $reward_per_order = 0; // По умолчанию
@@ -107,7 +107,7 @@ add_shortcode('user_related_orders', function () {
         'posts_per_page' => -1,
         'meta_query'     => [
             [
-                'key'   => '_ambassador_user',
+                'key'   => '_branam_ambassador_user',
                 'value' => $current_user_id, // Связка с текущим пользователем
             ],
         ],
@@ -211,7 +211,7 @@ add_shortcode('user_related_orders', function () {
         foreach ($orders_completed as $order_post) {
             $order = wc_get_order($order_post->ID);
             $used_coupons = $order->get_coupon_codes(); // Получаем применённые купоны
-            $payout_status = get_post_meta($order->get_id(), '_payout_status', true); // Получаем статус выплаты
+            $payout_status = get_post_meta($order->get_id(), '_branam_payout_status', true); // Получаем статус выплаты
             $payout_label = $payout_status === 'paid' ? __('Вознаграждение выплачено', 'brand-ambassador') : __('Нет выплаты', 'brand-ambassador');
             
             foreach ($used_coupons as $coupon_code) {
@@ -309,10 +309,10 @@ add_shortcode('user_total_orders', function () {
     $current_user_id = $current_user->ID;
 
     // Получаем роли и размеры выплат из настроек
-    $blogger_role = get_option('blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
-    $expert_role = get_option('expert_role', 'subscriber'); // Роль для экспертов (по умолчанию subscriber)
-    $blogger_reward = get_option('blogger_reward', 450); // Выплата для блогеров (по умолчанию 450)
-    $expert_reward = get_option('expert_reward', 600); // Выплата для экспертов (по умолчанию 600)
+    $blogger_role = get_option('branam_blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
+    $expert_role = get_option('branam_expert_role', 'subscriber'); // Роль для экспертов (по умолчанию subscriber)
+    $blogger_reward = get_option('branam_blogger_reward', 450); // Выплата для блогеров (по умолчанию 450)
+    $expert_reward = get_option('branam_expert_reward', 600); // Выплата для экспертов (по умолчанию 600)
 
     // Проверяем роли пользователя и устанавливаем вознаграждение
     $reward_per_order = 0; // По умолчанию, если роль не указана
@@ -330,7 +330,7 @@ add_shortcode('user_total_orders', function () {
         'posts_per_page' => -1,
         'meta_query'     => [
             [
-                'key'   => '_ambassador_user',
+                'key'   => '_branam_ambassador_user',
                 'value' => $current_user_id, // Связка с текущим пользователем
             ],
         ],
@@ -397,8 +397,8 @@ function branam_render_bank_data_form() {
     }
 
     $user_id = get_current_user_id();
-    $encrypted_card_number = get_user_meta($user_id, 'user_numbercartbank', true);
-    $bank_name = get_user_meta($user_id, 'user_bankname', true);
+    $encrypted_card_number = get_user_meta($user_id, 'branam_user_numbercartbank', true);
+    $bank_name = get_user_meta($user_id, 'branam_user_bankname', true);
 
     $card_number = !empty($encrypted_card_number) ? AmbassadorSettingsPage::decrypt_data($encrypted_card_number) : '';
     $masked_card_number = !empty($card_number) ? str_repeat('*', strlen($card_number) - 4) . substr($card_number, -4) : '';
@@ -459,8 +459,8 @@ function branam_process_bank_data_form() {
 
         // Используем статический вызов функции encrypt_data
         $encrypted_card_number = AmbassadorSettingsPage::encrypt_data($card_number);
-        update_user_meta($user_id, 'user_numbercartbank', $encrypted_card_number);
-        update_user_meta($user_id, 'user_bankname', $bank_name);
+        update_user_meta($user_id, 'branam_user_numbercartbank', $encrypted_card_number);
+        update_user_meta($user_id, 'branam_user_bankname', $bank_name);
 
         wp_redirect(add_query_arg('success', '1', wp_get_referer()));
         exit;
@@ -475,8 +475,8 @@ function branam_process_bank_data_form() {
         }
 
         // Удаляем мета-данные пользователя
-        delete_user_meta($user_id, 'user_numbercartbank');
-        delete_user_meta($user_id, 'user_bankname');
+        delete_user_meta($user_id, 'branam_user_numbercartbank');
+        delete_user_meta($user_id, 'branam_user_bankname');
 
         wp_redirect(add_query_arg('deleted', '1', wp_get_referer()));
         exit;
@@ -494,7 +494,7 @@ function branam_render_ambassador_card_number() {
     }
 
     $user_id = get_current_user_id();
-    $encrypted_card_number = get_user_meta($user_id, 'user_numbercartbank', true);
+    $encrypted_card_number = get_user_meta($user_id, 'branam_user_numbercartbank', true);
 
     if (empty($encrypted_card_number)) {
         return ''; // Если карта не добавлена, ничего не выводим
