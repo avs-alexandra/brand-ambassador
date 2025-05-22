@@ -241,7 +241,7 @@ class CouponPayoutsPage {
             <!-- Проверяем, есть ли заказы -->
             <?php if (empty($orders)): ?>
                 <p style="margin-top: 20px; font-size: 16px; color: #555;">
-                    <?php echo esc_html(sprintf(__('Нет заказов за %s %d.', 'brand-ambassador'), $month > 0 ? date_i18n('F', mktime(0, 0, 0, $month, 10)) : esc_html__('все месяцы', 'brand-ambassador'), $year)); ?>
+                    <?php echo esc_html(sprintf(__('Нет заказов за %1$s %2$d.', 'brand-ambassador'), $month > 0 ? date_i18n('F', mktime(0, 0, 0, $month, 10)) : esc_html__('все месяцы', 'brand-ambassador'), $year)); ?>
                 </p>
             <?php else: ?>
             
