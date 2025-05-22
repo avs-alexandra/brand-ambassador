@@ -10,8 +10,8 @@ class AmbassadorSettingsPage {
         // Проверка на совпадение ролей
         add_action('admin_notices', [$this, 'check_duplicate_roles']);
     }
-    
-      // Генерация и сохранение ключа шифрования
+
+    // Генерация и сохранение ключа шифрования
     public static function generate_encryption_key() {
         if (!get_option('brand_ambassador_encryption_key')) {
             $key = bin2hex(random_bytes(32)); // Генерация 256-битного ключа
@@ -61,28 +61,28 @@ class AmbassadorSettingsPage {
      * Регистрируем настройки
      */
     public function register_settings() {
-        register_setting('ambassador_settings', 'blogger_role', [
+        register_setting('ambassador_settings', 'branam_blogger_role', [
             'sanitize_callback' => [$this, 'validate_role'],
         ]);
-        register_setting('ambassador_settings', 'expert_role', [
+        register_setting('ambassador_settings', 'branam_expert_role', [
             'sanitize_callback' => [$this, 'validate_role'],
         ]);
-        register_setting('ambassador_settings', 'blogger_reward', [
+        register_setting('ambassador_settings', 'branam_blogger_reward', [
             'sanitize_callback' => 'absint', // Санитизация для чисел
         ]);
-        register_setting('ambassador_settings', 'expert_reward', [
+        register_setting('ambassador_settings', 'branam_expert_reward', [
             'sanitize_callback' => 'absint', // Санитизация для чисел
         ]);
-        register_setting('ambassador_settings', 'ambassador_delete_meta', [
+        register_setting('ambassador_settings', 'branam_ambassador_delete_meta', [
             'sanitize_callback' => 'rest_sanitize_boolean', // Для чекбокса
         ]);
-        register_setting('ambassador_settings', 'ambassador_email_subject', [
+        register_setting('ambassador_settings', 'branam_ambassador_email_subject', [
             'sanitize_callback' => 'sanitize_text_field', // Санитизация для текста
         ]);
-        register_setting('ambassador_settings', 'ambassador_email_template', [
+        register_setting('ambassador_settings', 'branam_ambassador_email_template', [
             'sanitize_callback' => [self::class, 'sanitize_email_template'],
         ]);
-        register_setting('ambassador_settings', 'ambassador_email_font', [
+        register_setting('ambassador_settings', 'branam_ambassador_email_font', [
             'sanitize_callback' => 'sanitize_text_field', // Санитизация для текста
         ]);
     }
@@ -103,19 +103,19 @@ class AmbassadorSettingsPage {
         return wp_kses_post($input); // Разрешает только безопасные HTML-теги
     }
 
-       /**
+    /**
      * Проверка на совпадение ролей и сброс к значениям по умолчанию
      */
     public function check_duplicate_roles() {
         // Получаем текущие значения ролей из настроек
-        $blogger_role = get_option('blogger_role');
-        $expert_role = get_option('expert_role');
+        $blogger_role = get_option('branam_blogger_role');
+        $expert_role = get_option('branam_expert_role');
 
         // Проверяем, совпадают ли роли
         if (!empty($blogger_role) && !empty($expert_role) && $blogger_role === $expert_role) {
             // Сбрасываем роли к значениям по умолчанию
-            update_option('blogger_role', 'customer'); // По умолчанию 'customer'
-            update_option('expert_role', 'subscriber'); // По умолчанию 'subscriber'
+            update_option('branam_blogger_role', 'customer'); // По умолчанию 'customer'
+            update_option('branam_expert_role', 'subscriber'); // По умолчанию 'subscriber'
 
             // Выводим уведомление об ошибке и сбросе
             echo '<div class="notice notice-error">';
@@ -130,14 +130,14 @@ class AmbassadorSettingsPage {
     public function render_settings_page() {
         global $wp_roles;
         $roles = $wp_roles->roles;
-        $blogger_role = get_option('blogger_role', 'customer');
-        $expert_role = get_option('expert_role', 'subscriber');
-        $blogger_reward = get_option('blogger_reward', 450);
-        $expert_reward = get_option('expert_reward', 600);
-        $delete_meta = get_option('ambassador_delete_meta', 0);
-        $email_subject = get_option('ambassador_email_subject', 'Ваш купон был использован!'); // Значение по умолчанию для темы письма
-        $email_template = get_option('ambassador_email_template', 'Здравствуйте, [ambassador]! Ваш купон "[coupon]" был использован для заказа №[order_id].');
-        $email_font = get_option('ambassador_email_font', 'Arial, sans-serif'); // Значение по умолчанию
+        $blogger_role = get_option('branam_blogger_role', 'customer');
+        $expert_role = get_option('branam_expert_role', 'subscriber');
+        $blogger_reward = get_option('branam_blogger_reward', 450);
+        $expert_reward = get_option('branam_expert_reward', 600);
+        $delete_meta = get_option('branam_ambassador_delete_meta', 0);
+        $email_subject = get_option('branam_ambassador_email_subject', 'Ваш купон был использован!'); // Значение по умолчанию для темы письма
+        $email_template = get_option('branam_ambassador_email_template', 'Здравствуйте, [ambassador]! Ваш купон "[coupon]" был использован для заказа №[order_id].');
+        $email_font = get_option('branam_ambassador_email_font', 'Arial, sans-serif'); // Значение по умолчанию
         ?>
         <div class="wrap">
             <h1><?php esc_html_e('Настройки Амбассадора бренда', 'brand-ambassador'); ?></h1>
@@ -147,20 +147,21 @@ class AmbassadorSettingsPage {
                 <table class="form-table">
                     <!-- Добавлено уведомление -->
                     <tr>
-                     <td colspan="2">
-                     <p style="color: #000;">
-                 <?php
-                     echo wp_kses_post(__('Шорткоды:<br>[user_coupon_name] - Купон Амбассадора <br>[user_related_orders] - Статистика заказов Амбассадора <br>[user_total_orders] - Общая статистика Амбассадора <br>[ambassador_bank_form] - Форма ввода банковской карты Амбассадора <br>[ambassador_card_number] - Отобразить последние 4 цифры номера карты', 'brand-ambassador'));
-                 ?>
-                       </p>
-                        <p style="color: #646970;">
-                            <?php esc_html_e('Выберите разные роли для уровней Блогер и Эксперт для корректного расчёта выплат. (Cоздать новые роли можно с помощью плагина User Role Editor)', 'brand-ambassador'); ?>
-                        </p>
+                        <td colspan="2">
+                            <p style="color: #000;">
+                            <?php
+                                echo wp_kses_post(__('Шорткоды:<br>[user_coupon_name] - Купон Амбассадора <br>[user_related_orders] - Статистика заказов Амбассадора <br>[user_total_orders] - Общая статистика Амбассадора <br>[ambassador_bank_form] - Форма ввода банковской карты Амбассадора <br>[ambassador_card_number] - Отобразить последние 4 цифры номера карты', 'brand-ambassador'));
+                            ?>
+                            </p>
+                            <p style="color: #646970;">
+                                <?php esc_html_e('Выберите разные роли для уровней Блогер и Эксперт для корректного расчёта выплат. (Cоздать новые роли можно с помощью плагина User Role Editor)', 'brand-ambassador'); ?>
+                            </p>
+                        </td>
                     </tr>
                     <tr valign="top">
                         <th scope="row"><?php esc_html_e('Роль для Блогера', 'brand-ambassador'); ?></th>
                         <td>
-                            <select name="blogger_role">
+                            <select name="branam_blogger_role">
                                 <?php foreach ($roles as $role_key => $role): ?>
                                     <option value="<?php echo esc_attr($role_key); ?>" <?php selected($blogger_role, $role_key); ?>>
                                         <?php echo esc_html($role['name']); ?>
@@ -172,7 +173,7 @@ class AmbassadorSettingsPage {
                     <tr valign="top">
                         <th scope="row"><?php esc_html_e('Роль для Эксперта', 'brand-ambassador'); ?></th>
                         <td>
-                            <select name="expert_role">
+                            <select name="branam_expert_role">
                                 <?php foreach ($roles as $role_key => $role): ?>
                                     <option value="<?php echo esc_attr($role_key); ?>" <?php selected($expert_role, $role_key); ?>>
                                         <?php echo esc_html($role['name']); ?>
@@ -184,13 +185,13 @@ class AmbassadorSettingsPage {
                     <tr valign="top">
                         <th scope="row"><?php esc_html_e('Выплата за заказ для Блогера (руб)', 'brand-ambassador'); ?></th>
                         <td>
-                            <input type="number" name="blogger_reward" value="<?php echo esc_attr($blogger_reward); ?>" min="0" />
+                            <input type="number" name="branam_blogger_reward" value="<?php echo esc_attr($blogger_reward); ?>" min="0" />
                         </td>
                     </tr>
                     <tr valign="top">
                         <th scope="row"><?php esc_html_e('Выплата за заказ для Эксперта (руб)', 'brand-ambassador'); ?></th>
                         <td>
-                            <input type="number" name="expert_reward" value="<?php echo esc_attr($expert_reward); ?>" min="0" />
+                            <input type="number" name="branam_expert_reward" value="<?php echo esc_attr($expert_reward); ?>" min="0" />
                         </td>
                     </tr>
                     <tr valign="top">
@@ -198,7 +199,7 @@ class AmbassadorSettingsPage {
                         <td>
                             <input
                                 type="text"
-                                name="ambassador_email_subject"
+                                name="branam_ambassador_email_subject"
                                 value="<?php echo esc_attr($email_subject); ?>"
                                 class="regular-text"
                             />
@@ -210,9 +211,9 @@ class AmbassadorSettingsPage {
                             <?php
                             wp_editor(
                                 $email_template,
-                                'ambassador_email_template',
+                                'branam_ambassador_email_template',
                                 [
-                                    'textarea_name' => 'ambassador_email_template',
+                                    'textarea_name' => 'branam_ambassador_email_template',
                                     'textarea_rows' => 10,
                                     'media_buttons' => true,
                                 ]
@@ -226,7 +227,7 @@ class AmbassadorSettingsPage {
                         <td>
                             <input
                                 type="text"
-                                name="ambassador_email_font"
+                                name="branam_ambassador_email_font"
                                 value="<?php echo esc_attr($email_font); ?>"
                                 class="regular-text"
                             />
@@ -236,8 +237,8 @@ class AmbassadorSettingsPage {
                     <tr valign="top">
                         <th scope="row"><?php esc_html_e('Перед удалением плагина', 'brand-ambassador'); ?></th>
                         <td>
-                            <input type="checkbox" name="ambassador_delete_meta" value="1" <?php checked(1, $delete_meta, true); ?> />
-                            <label for="ambassador_delete_meta">
+                            <input type="checkbox" name="branam_ambassador_delete_meta" value="1" <?php checked(1, $delete_meta, true); ?> />
+                            <label for="branam_ambassador_delete_meta">
                                 <?php esc_html_e('Удалить метаполя, которые создал плагин', 'brand-ambassador'); ?></label>
                                 <ul>
                                     <li><strong>_branam_ambassador_user</strong>: Связь между купоном и пользователем (ID пользователя).</li>
@@ -256,11 +257,11 @@ class AmbassadorSettingsPage {
         <?php
     }
 
-     /**
+    /**
      * Удаление данных плагина
      */
     public static function delete_plugin_data() {
-        if (get_option('ambassador_delete_meta') == 1) {
+        if (get_option('branam_ambassador_delete_meta') == 1) {
             global $wpdb;
 
             // Удаление метаполей
@@ -268,18 +269,19 @@ class AmbassadorSettingsPage {
             $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('_branam_user_coupon', 'branam_user_numbercartbank', 'branam_user_bankname')");
 
             // Удаление опций
-            delete_option('ambassador_delete_meta');
-            delete_option('blogger_role');
-            delete_option('expert_role');
-            delete_option('blogger_reward');
-            delete_option('expert_reward');
-            delete_option('ambassador_email_subject');
-            delete_option('ambassador_email_template');
-            delete_option('ambassador_email_font');
+            delete_option('branam_ambassador_delete_meta');
+            delete_option('branam_blogger_role');
+            delete_option('branam_expert_role');
+            delete_option('branam_blogger_reward');
+            delete_option('branam_expert_reward');
+            delete_option('branam_ambassador_email_subject');
+            delete_option('branam_ambassador_email_template');
+            delete_option('branam_ambassador_email_font');
             delete_option('brand_ambassador_encryption_key'); // Удаление ключа шифрования
         }
     }
 }
+
 // Регистрация хуков активации и удаления — вне класса
 register_activation_hook(plugin_dir_path(__DIR__) . 'brand-ambassador.php', ['AmbassadorSettingsPage', 'generate_encryption_key']);
 register_uninstall_hook(plugin_dir_path(__DIR__) . 'brand-ambassador.php', ['AmbassadorSettingsPage', 'delete_plugin_data']);
