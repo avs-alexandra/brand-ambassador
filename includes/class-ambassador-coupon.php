@@ -272,18 +272,29 @@ class AmbassadorCouponProgram {
      * Подключение стилей и скриптов для Select2
      */
     public function enqueue_select2_scripts($hook) {
-        if (!in_array($hook, ['post.php', 'post-new.php'])) {
-            return;
-        }
-
-        $post_type = get_post_type();
-        if ($post_type !== 'shop_coupon') {
-            return;
-        }
-
-        wp_enqueue_script('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js', ['jquery'], null, true);
-        wp_enqueue_style('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css');
+    if (!in_array($hook, ['post.php', 'post-new.php'])) {
+        return;
     }
+
+    $post_type = get_post_type();
+    if ($post_type !== 'shop_coupon') {
+        return;
+    }
+    // Локальное подключение!
+    wp_enqueue_script(
+        'select2',
+        plugin_dir_url(__DIR__) . '../assets/js/select2.min.js',
+        array('jquery'),
+        '4.1.0',
+        true
+    );
+    wp_enqueue_style(
+        'select2',
+        plugin_dir_url(__DIR__) . '../assets/css/select2.min.css',
+        array(),
+        '4.1.0'
+    );
+}
 
     /**
      * AJAX: Поиск пользователей по email с фильтром по ролям и исключением пользователей с уже связанным купоном
