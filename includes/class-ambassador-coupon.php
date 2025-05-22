@@ -235,6 +235,20 @@ public function show_user_coupon($user) {
  * Сохранение метаполей для банковских реквизитов
  */
 public function save_user_meta_fields($user_id) {
+    // Проверка nonce для профиля пользователя (если форма добавляет nonce)
+    if (
+        !isset($_POST['_wpnonce']) ||
+        !check_admin_referer('update-user_' . $user_id)
+    ) {
+        // Можно использовать wp_die, но в профиле WordPress WordPress сам покажет ошибку nonce
+        return;
+    }
+
+    // Проверка прав пользователя
+    if ( ! current_user_can('edit_user', $user_id) ) {
+        return;
+    }
+
     // Получаем роли из настроек
     $blogger_role = get_option('blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
     $expert_role = get_option('expert_role', 'subscriber'); // Роль для экспертов (по умолчанию subscriber)
