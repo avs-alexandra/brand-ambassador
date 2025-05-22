@@ -104,11 +104,11 @@ class AmbassadorNotifications {
         }
         $header = ob_get_clean();
         $header = strtr($header, [
-            '{background_color}' => get_option("woocommerce_email_background_color", "#f5f5f5"),
-            '{woocommerce_email_base_color}' => get_option("woocommerce_email_base_color", "#007cba"),
-            '{title}' => esc_html($subject),
-            '{font_family}' => esc_attr($email_font), // Применяем шрифт
-        ]);
+        '{background_color}' => esc_attr(get_option("woocommerce_email_background_color", "#f5f5f5")),
+        '{woocommerce_email_base_color}' => esc_attr(get_option("woocommerce_email_base_color", "#007cba")),
+        '{title}' => esc_html($subject),
+        '{font_family}' => esc_attr($email_font),
+         ]);
 
         // Генерация подвала
         ob_start();
@@ -116,13 +116,13 @@ class AmbassadorNotifications {
             include $footer_template;
         }
         $footer = ob_get_clean();
-        $footer = strtr($footer, [
-            '{text_color}' => get_option("woocommerce_email_text_color", "#444444"),
-            '{description}' => get_option('woocommerce_email_footer_text', __("Спасибо за использование нашего сервиса!", "brand-ambassador")),
-            '{site_title}' => get_bloginfo('name'),
-            '{site_url}' => home_url(),
-            '{year}' => date('Y'),
-            '{font_family}' => esc_attr($email_font), // Применяем шрифт
+       $footer = strtr($footer, [
+        '{text_color}'   => esc_attr(get_option("woocommerce_email_text_color", "#444444")),
+        '{description}'  => esc_html(get_option('woocommerce_email_footer_text', __("Спасибо за использование нашего сервиса!", "brand-ambassador"))),
+        '{site_title}'   => esc_html(get_bloginfo('name')),
+        '{site_url}'     => esc_url(home_url()),
+        '{year}'         => esc_html(date('Y')),
+        '{font_family}'  => esc_attr($email_font), // Применяем шрифт
         ]);
 
         // Объединяем шапку, тело и подвал
