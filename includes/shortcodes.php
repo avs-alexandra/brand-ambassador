@@ -462,7 +462,7 @@ function branam_process_bank_data_form() {
         update_user_meta($user_id, 'branam_user_numbercartbank', $encrypted_card_number);
         update_user_meta($user_id, 'branam_user_bankname', $bank_name);
 
-        wp_redirect(add_query_arg('success', '1', wp_get_referer()));
+        wp_safe_redirect(add_query_arg('success', '1', wp_get_referer()));
         exit;
     }
 
@@ -478,7 +478,7 @@ function branam_process_bank_data_form() {
         delete_user_meta($user_id, 'branam_user_numbercartbank');
         delete_user_meta($user_id, 'branam_user_bankname');
 
-        wp_redirect(add_query_arg('deleted', '1', wp_get_referer()));
+        wp_safe_redirect(add_query_arg('deleted', '1', wp_get_referer()));
         exit;
     }
 }
