@@ -291,6 +291,11 @@ public function enqueue_select2_scripts($hook) {
 public function search_users_by_email() {
     check_ajax_referer('search_users_by_email', 'nonce');
 
+    // Проверка прав пользователя — только для админа или менеджера магазина
+    if ( ! current_user_can( 'edit_users' ) ) {
+        wp_send_json_error(['message' => esc_html__('Недостаточно прав для выполнения действия.', 'brand-ambassador')]);
+    }
+
     $term = isset($_GET['term']) ? sanitize_text_field($_GET['term']) : '';
 
     if (empty($term)) {
