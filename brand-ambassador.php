@@ -2,7 +2,7 @@
 /*
 Plugin Name: Brand Ambassador
 Plugin URI: https://github.com/avs-alexandra/brand-ambassador
-Description: Плагин для управления амбассадорами бренда и их вознаграждениями.
+Description: Plugin for managing brand ambassadors and their rewards in WooCommerce.
 Version: 1.0.4
 Author: avs-alexandra
 Author URI: https://github.com/avs-alexandra
