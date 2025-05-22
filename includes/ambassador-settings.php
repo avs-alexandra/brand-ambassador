@@ -119,7 +119,7 @@ class AmbassadorSettingsPage {
 
             // Выводим уведомление об ошибке и сбросе
             echo '<div class="notice notice-error">';
-            echo '<p>' . __('Необходимо выбрать разные роли для Блогера и Эксперта! Роли были сброшены к значениям по умолчанию.', 'brand-ambassador') . '</p>';
+            echo '<p>' . esc_html__('Необходимо выбрать разные роли для Блогера и Эксперта! Роли были сброшены к значениям по умолчанию.', 'brand-ambassador') . '</p>';
             echo '</div>';
         }
     }
@@ -140,22 +140,25 @@ class AmbassadorSettingsPage {
         $email_font = get_option('ambassador_email_font', 'Arial, sans-serif'); // Значение по умолчанию
         ?>
         <div class="wrap">
-            <h1><?php _e('Настройки Амбассадора бренда', 'brand-ambassador'); ?></h1>
+            <h1><?php esc_html_e('Настройки Амбассадора бренда', 'brand-ambassador'); ?></h1>
             <form method="post" action="options.php">
                 <?php settings_fields('ambassador_settings'); ?>
                 <?php do_settings_sections('ambassador_settings'); ?>
                 <table class="form-table">
                     <!-- Добавлено уведомление -->
                     <tr>
-                        <p style="color: #000;">
-                            <?php _e('Шорткоды:<br>[user_coupon_name] - Купон Амбассадора <br>[user_related_orders] - Статистика заказов Амбассадора <br>[user_total_orders] - Общая статистика Амбассадора <br>[ambassador_bank_form] - Форма ввода банковской карты Амбассадора <br>[ambassador_card_number] - Отобразить последние 4 цифры номера карты', 'brand-ambassador'); ?>
-                        </p>
+                     <td colspan="2">
+                     <p style="color: #000;">
+                 <?php
+                     echo wp_kses_post(__('Шорткоды:<br>[user_coupon_name] - Купон Амбассадора <br>[user_related_orders] - Статистика заказов Амбассадора <br>[user_total_orders] - Общая статистика Амбассадора <br>[ambassador_bank_form] - Форма ввода банковской карты Амбассадора <br>[ambassador_card_number] - Отобразить последние 4 цифры номера карты', 'brand-ambassador'));
+                 ?>
+                       </p>
                         <p style="color: #646970;">
-                            <?php _e('Выберите разные роли для уровней Блогер и Эксперт для корректного расчёта выплат. (Cоздать новые роли можно с помощью плагина User Role Editor)', 'brand-ambassador'); ?>
+                            <?php esc_html_e('Выберите разные роли для уровней Блогер и Эксперт для корректного расчёта выплат. (Cоздать новые роли можно с помощью плагина User Role Editor)', 'brand-ambassador'); ?>
                         </p>
                     </tr>
                     <tr valign="top">
-                        <th scope="row"><?php _e('Роль для Блогера', 'brand-ambassador'); ?></th>
+                        <th scope="row"><?php esc_html_e('Роль для Блогера', 'brand-ambassador'); ?></th>
                         <td>
                             <select name="blogger_role">
                                 <?php foreach ($roles as $role_key => $role): ?>
@@ -167,7 +170,7 @@ class AmbassadorSettingsPage {
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row"><?php _e('Роль для Эксперта', 'brand-ambassador'); ?></th>
+                        <th scope="row"><?php esc_html_e('Роль для Эксперта', 'brand-ambassador'); ?></th>
                         <td>
                             <select name="expert_role">
                                 <?php foreach ($roles as $role_key => $role): ?>
@@ -179,19 +182,19 @@ class AmbassadorSettingsPage {
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row"><?php _e('Выплата за заказ для Блогера (руб)', 'brand-ambassador'); ?></th>
+                        <th scope="row"><?php esc_html_e('Выплата за заказ для Блогера (руб)', 'brand-ambassador'); ?></th>
                         <td>
                             <input type="number" name="blogger_reward" value="<?php echo esc_attr($blogger_reward); ?>" min="0" />
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row"><?php _e('Выплата за заказ для Эксперта (руб)', 'brand-ambassador'); ?></th>
+                        <th scope="row"><?php esc_html_e('Выплата за заказ для Эксперта (руб)', 'brand-ambassador'); ?></th>
                         <td>
                             <input type="number" name="expert_reward" value="<?php echo esc_attr($expert_reward); ?>" min="0" />
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row"><?php _e('Тема письма', 'brand-ambassador'); ?></th>
+                        <th scope="row"><?php esc_html_e('Тема письма', 'brand-ambassador'); ?></th>
                         <td>
                             <input
                                 type="text"
@@ -202,7 +205,7 @@ class AmbassadorSettingsPage {
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row"><?php _e('Текст письма амбассадору', 'brand-ambassador'); ?></th>
+                        <th scope="row"><?php esc_html_e('Текст письма амбассадору', 'brand-ambassador'); ?></th>
                         <td>
                             <?php
                             wp_editor(
@@ -215,11 +218,11 @@ class AmbassadorSettingsPage {
                                 ]
                             );
                             ?>
-                            <p class="description"><?php _e('Используйте плейсхолдеры [ambassador] для имени амбассадора, [coupon] для купона и [order_id] для номера заказа.', 'brand-ambassador'); ?></p>
+                            <p class="description"><?php esc_html_e('Используйте плейсхолдеры [ambassador] для имени амбассадора, [coupon] для купона и [order_id] для номера заказа.', 'brand-ambassador'); ?></p>
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row"><?php _e('Шрифт письма', 'brand-ambassador'); ?></th>
+                        <th scope="row"><?php esc_html_e('Шрифт письма', 'brand-ambassador'); ?></th>
                         <td>
                             <input
                                 type="text"
@@ -227,15 +230,15 @@ class AmbassadorSettingsPage {
                                 value="<?php echo esc_attr($email_font); ?>"
                                 class="regular-text"
                             />
-                            <p class="description"><?php _e('Укажите шрифт для письма (например, Arial, sans-serif).', 'brand-ambassador'); ?></p>
+                            <p class="description"><?php esc_html_e('Укажите шрифт для письма (например, Arial, sans-serif).', 'brand-ambassador'); ?></p>
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row"><?php _e('Перед удалением плагина', 'brand-ambassador'); ?></th>
+                        <th scope="row"><?php esc_html_e('Перед удалением плагина', 'brand-ambassador'); ?></th>
                         <td>
                             <input type="checkbox" name="ambassador_delete_meta" value="1" <?php checked(1, $delete_meta, true); ?> />
                             <label for="ambassador_delete_meta">
-                                <?php _e('Удалить метаполя, которые создал плагин', 'brand-ambassador'); ?>
+                                <?php esc_html_e('Удалить метаполя, которые создал плагин', 'brand-ambassador'); ?></label>
                                 <ul>
                                     <li><strong>_ambassador_user</strong>: Связь между купоном и пользователем (ID пользователя).</li>
                                     <li><strong>only_first_order</strong>: Чекбокс в купоне, который действует только для первого заказа.</li>
@@ -244,7 +247,6 @@ class AmbassadorSettingsPage {
                                     <li><strong>user_bankname</strong>: Название банка пользователя.</li>
                                     <li><strong>_payout_status</strong>: Статус выплаты.</li>
                                 </ul>
-                            </label>
                         </td>
                     </tr>
                 </table>
