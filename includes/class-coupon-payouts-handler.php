@@ -6,6 +6,22 @@ class CouponPayoutsHandler {
      * Обрабатывает сохранение статуса выплат и расчёт суммы выплат
      */
     public function save_payout_status() {
+        // 1. Проверка nonce
+        if (
+            !isset($_POST['payout_status_nonce']) ||
+            !wp_verify_nonce(
+                sanitize_text_field(wp_unslash($_POST['payout_status_nonce'])),
+                'save_payout_status'
+            )
+        ) {
+            wp_die(esc_html__('Ошибка безопасности. Попробуйте снова.', 'brand-ambassador'));
+        }
+
+        // 2. Проверка прав пользователя
+        if (!current_user_can('manage_woocommerce')) {
+            wp_die(esc_html__('Недостаточно прав для выполнения действия.', 'brand-ambassador'));
+        }
+
         $action_type = isset($_POST['action_type']) ? sanitize_text_field($_POST['action_type']) : ''; // Тип действия
         $selected_orders = isset($_POST['payout_status']) ? $_POST['payout_status'] : []; // Выбранные заказы
         $calculation_result = null; // Результат расчёта
@@ -55,100 +71,100 @@ class CouponPayoutsHandler {
         // Перенаправление обратно на страницу выплат с сохранением фильтров
         $redirect_url = admin_url('admin.php?page=coupon-payouts');
         if (!empty($_POST['filters'])) {
-            $redirect_url .= '&' . http_build_query($_POST['filters']);
+            $redirect_url .= '&' . http_build_query(array_map('sanitize_text_field', wp_unslash($_POST['filters'])));
         }
-        wp_redirect($redirect_url);
+        wp_safe_redirect($redirect_url);
         exit;
     }
 
-/**
- * Логика для расчёта суммы выплат
- */
-private function calculate_payout_sum($selected_orders) {
-    if (empty($selected_orders)) {
-        return ['error' => esc_html__('Выберите хотя бы одну строку для расчёта.', 'brand-ambassador')];
-    }
-
-    // Получаем текущие настройки для ролей и выплат
-    $blogger_role = get_option('blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
-    $expert_role = get_option('expert_role', 'subscriber'); // Роль для экспертов (по умолчанию subscriber)
-    $blogger_reward = get_option('blogger_reward', 450); // Выплата для блогеров (по умолчанию 450)
-    $expert_reward = get_option('expert_reward', 600); // Выплата для экспертов (по умолчанию 600)
-
-    $ambassadors = [];
-    foreach ($selected_orders as $order_id => $value) {
-        $order = wc_get_order($order_id);
-        if (!$order) continue;
-
-        $coupon_codes = $order->get_coupon_codes();
-        foreach ($coupon_codes as $coupon_code) {
-            $coupon = new WC_Coupon($coupon_code);
-            $associated_user_id = get_post_meta($coupon->get_id(), '_ambassador_user', true);
-            if (!$associated_user_id) continue;
-
-            $user = get_userdata($associated_user_id);
-            if (!$user) continue;
-
-            // Логика определения уровня пользователя
-            $role_label = 'Неизвестная роль';
-            $reward = 0;
-
-            if (in_array($expert_role, $user->roles)) {
-                $role_label = 'Эксперт';
-                $reward = $expert_reward;
-            } elseif (in_array($blogger_role, $user->roles)) {
-                $role_label = 'Блогер';
-                $reward = $blogger_reward;
-            }
-
-            // Если уровень не определён, пропускаем
-            if ($reward === 0) {
-                continue;
-            }
-
-            if (!isset($ambassadors[$associated_user_id])) {
-                $ambassadors[$associated_user_id] = [
-                    'user' => $user,
-                    'reward' => $reward,
-                    'orders' => 0,
-                    'level' => $role_label,
-                ];
-            }
-            $ambassadors[$associated_user_id]['orders']++;
+    /**
+     * Логика для расчёта суммы выплат
+     */
+    private function calculate_payout_sum($selected_orders) {
+        if (empty($selected_orders)) {
+            return ['error' => esc_html__('Выберите хотя бы одну строку для расчёта.', 'brand-ambassador')];
         }
-    }
 
-    if (count($ambassadors) > 1) {
+        // Получаем текущие настройки для ролей и выплат
+        $blogger_role = get_option('blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
+        $expert_role = get_option('expert_role', 'subscriber'); // Роль для экспертов (по умолчанию subscriber)
+        $blogger_reward = get_option('blogger_reward', 450); // Выплата для блогеров (по умолчанию 450)
+        $expert_reward = get_option('expert_reward', 600); // Выплата для экспертов (по умолчанию 600)
+
+        $ambassadors = [];
+        foreach ($selected_orders as $order_id => $value) {
+            $order = wc_get_order($order_id);
+            if (!$order) continue;
+
+            $coupon_codes = $order->get_coupon_codes();
+            foreach ($coupon_codes as $coupon_code) {
+                $coupon = new WC_Coupon($coupon_code);
+                $associated_user_id = get_post_meta($coupon->get_id(), '_ambassador_user', true);
+                if (!$associated_user_id) continue;
+
+                $user = get_userdata($associated_user_id);
+                if (!$user) continue;
+
+                // Логика определения уровня пользователя
+                $role_label = 'Неизвестная роль';
+                $reward = 0;
+
+                if (in_array($expert_role, $user->roles)) {
+                    $role_label = 'Эксперт';
+                    $reward = $expert_reward;
+                } elseif (in_array($blogger_role, $user->roles)) {
+                    $role_label = 'Блогер';
+                    $reward = $blogger_reward;
+                }
+
+                // Если уровень не определён, пропускаем
+                if ($reward === 0) {
+                    continue;
+                }
+
+                if (!isset($ambassadors[$associated_user_id])) {
+                    $ambassadors[$associated_user_id] = [
+                        'user' => $user,
+                        'reward' => $reward,
+                        'orders' => 0,
+                        'level' => $role_label,
+                    ];
+                }
+                $ambassadors[$associated_user_id]['orders']++;
+            }
+        }
+
+        if (count($ambassadors) > 1) {
+            return [
+                'error' => esc_html__('Выбрано несколько Амбассадоров, пожалуйста, измените выбор.', 'brand-ambassador'),
+            ];
+        }
+
+        $ambassador = reset($ambassadors);
+        $user = $ambassador['user'];
+        $reward = $ambassador['reward'];
+        $orders_count = $ambassador['orders'];
+        $sum = $orders_count * $reward;
+        $user_level = $ambassador['level'];
+
+        // Расшифровка номера карты
+        $encrypted_card_number = get_user_meta($user->ID, 'user_numbercartbank', true);
+        $decrypted_card_number = !empty($encrypted_card_number) ? AmbassadorSettingsPage::decrypt_data($encrypted_card_number) : esc_html__('Не указан', 'brand-ambassador');
+
         return [
-            'error' => esc_html__('Выбрано несколько Амбассадоров, пожалуйста, измените выбор.', 'brand-ambassador'),
+            'message' => sprintf(
+                __('Общая сумма выплаты за %s %d для %s (%s): %d*%dруб = %dруб<br>Уровень: %s<br>№ карты: %s<br>Банк: %s', 'brand-ambassador'),
+                esc_html(date_i18n('F')),
+                esc_html(date('Y')),
+                esc_html($user->display_name),
+                esc_html($user->user_email),
+                esc_html($orders_count),
+                esc_html($reward),
+                esc_html($sum),
+                esc_html($user_level),
+                esc_html($decrypted_card_number),
+                esc_html(get_user_meta($user->ID, 'user_bankname', true))
+            ),
         ];
     }
-
-    $ambassador = reset($ambassadors);
-    $user = $ambassador['user'];
-    $reward = $ambassador['reward'];
-    $orders_count = $ambassador['orders'];
-    $sum = $orders_count * $reward;
-    $user_level = $ambassador['level'];
-
-    // Расшифровка номера карты
-    $encrypted_card_number = get_user_meta($user->ID, 'user_numbercartbank', true);
-    $decrypted_card_number = !empty($encrypted_card_number) ? AmbassadorSettingsPage::decrypt_data($encrypted_card_number) : esc_html__('Не указан', 'brand-ambassador');
-
-    return [
-        'message' => sprintf(
-    __('Общая сумма выплаты за %s %d для %s (%s): %d*%dруб = %dруб<br>Уровень: %s<br>№ карты: %s<br>Банк: %s', 'brand-ambassador'),
-    esc_html(date_i18n('F')),
-    esc_html(date('Y')),
-    esc_html($user->display_name),
-    esc_html($user->user_email),
-    esc_html($orders_count),
-    esc_html($reward),
-    esc_html($sum),
-    esc_html($user_level),
-    esc_html($decrypted_card_number),
-    esc_html(get_user_meta($user->ID, 'user_bankname', true))
-       ),
-    ];
-}
 }
