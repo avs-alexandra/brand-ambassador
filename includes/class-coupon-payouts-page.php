@@ -16,26 +16,26 @@ class CouponPayoutsPage {
         );
     }
 
-   /**
- * Получает минимальный год, в котором есть заказы
- */
-private function get_minimum_order_year() {
-    global $wpdb;
+    /**
+     * Получает минимальный год, в котором есть заказы
+     */
+    private function get_minimum_order_year() {
+        global $wpdb;
 
-    // Подготавливаем запрос с использованием $wpdb->prepare()
-    $query = "
-        SELECT YEAR(MIN(post_date))
-        FROM {$wpdb->posts}
-        WHERE post_type = %s
-          AND post_status IN (%s, %s, %s)
-    ";
+        // Подготавливаем запрос с использованием $wpdb->prepare()
+        $query = "
+            SELECT YEAR(MIN(post_date))
+            FROM {$wpdb->posts}
+            WHERE post_type = %s
+              AND post_status IN (%s, %s, %s)
+        ";
 
-    // Выполняем запрос с безопасными параметрами
-    $result = $wpdb->get_var($wpdb->prepare($query, 'shop_order', 'wc-completed', 'wc-processing', 'wc-on-hold'));
+        // Выполняем запрос с безопасными параметрами
+        $result = $wpdb->get_var($wpdb->prepare($query, 'shop_order', 'wc-completed', 'wc-processing', 'wc-on-hold'));
 
-    // Возвращаем результат, по умолчанию текущий год, если ничего не найдено
-    return $result ? absint($result) : date('Y');
-}
+        // Возвращаем результат, по умолчанию текущий год, если ничего не найдено
+        return $result ? absint($result) : date('Y');
+    }
 
     /**
      * Рендеринг страницы выплат
@@ -49,28 +49,28 @@ private function get_minimum_order_year() {
         }
         // Редирект, если параметры m и y отсутствуют
         if (!isset($_GET['m']) || !isset($_GET['y'])) {
-        wp_redirect(add_query_arg(['m' => 0, 'y' => date('Y')], admin_url('admin.php?page=coupon-payouts')));
-        exit;
+            wp_redirect(add_query_arg(['m' => 0, 'y' => date('Y')], admin_url('admin.php?page=coupon-payouts')));
+            exit;
         }
         // Получаем результат расчёта из transient
-        $calculation_result = get_transient('coupon_payout_calculation_result');
-        delete_transient('coupon_payout_calculation_result'); // Удаляем transient, чтобы уведомление не отображалось повторно
+        $calculation_result = get_transient('branam_coupon_payout_calculation_result');
+        delete_transient('branam_coupon_payout_calculation_result'); // Удаляем transient, чтобы уведомление не отображалось повторно
 
         // Получаем выбранные заказы из transient
-        $selected_orders = get_transient('coupon_payout_selected_orders');
-        delete_transient('coupon_payout_selected_orders'); // Удаляем transient
+        $selected_orders = get_transient('branam_coupon_payout_selected_orders');
+        delete_transient('branam_coupon_payout_selected_orders'); // Удаляем transient
 
         // Проверяем флаг для отображения кнопок
-        $show_action_buttons = get_transient('show_action_buttons');
+        $show_action_buttons = get_transient('branam_show_action_buttons');
         if ($show_action_buttons) {
-            delete_transient('show_action_buttons'); // Удаляем transient после отображения кнопок
+            delete_transient('branam_show_action_buttons'); // Удаляем transient после отображения кнопок
         }
 
         // Получаем роли и размеры выплат из настроек
-        $blogger_role = get_option('blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
-        $expert_role = get_option('expert_role', 'subscriber'); // Роль для экспертов (по умолчанию subscriber)
-        $blogger_reward = get_option('blogger_reward', 450); // Выплата для блогеров (по умолчанию 450)
-        $expert_reward = get_option('expert_reward', 600); // Выплата для экспертов (по умолчанию 600)
+        $blogger_role = get_option('branam_blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
+        $expert_role = get_option('branam_expert_role', 'subscriber'); // Роль для экспертов (по умолчанию subscriber)
+        $blogger_reward = get_option('branam_blogger_reward', 450); // Выплата для блогеров (по умолчанию 450)
+        $expert_reward = get_option('branam_expert_reward', 600); // Выплата для экспертов (по умолчанию 600)
 
         // Получаем параметры из GET-запроса
         $month = isset($_GET['m']) ? absint($_GET['m']) : 0; // 0 = Все месяцы
@@ -117,7 +117,7 @@ private function get_minimum_order_year() {
 
             foreach ($coupon_codes as $coupon_code) {
                 $coupon = new WC_Coupon($coupon_code);
-                $associated_user_id = get_post_meta($coupon->get_id(), '_ambassador_user', true);
+                $associated_user_id = get_post_meta($coupon->get_id(), '_branam_ambassador_user', true);
 
                 if (!empty($associated_user_id)) {
                     $user = get_userdata($associated_user_id);
@@ -153,7 +153,7 @@ private function get_minimum_order_year() {
                     }
 
                     // Получаем статус выплаты
-                    $payout_status = get_post_meta($order->get_id(), '_payout_status', true);
+                    $payout_status = get_post_meta($order->get_id(), '_branam_payout_status', true);
 
                     $orders[] = [
                         'order_id' => $order->get_id(),
