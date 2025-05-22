@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  * Не шорткод. Добавляем возможность купону только для первой покупки
  */
 add_filter('woocommerce_coupon_get_discount_amount', 'apply_coupon_only_first_order_with_removal', 10, 5);
-function apply_coupon_only_first_order_with_removal($discount, $discounting_amount, $cart_item, $single, $coupon) {
+function branam_apply_coupon_only_first_order_with_removal($discount, $discounting_amount, $cart_item, $single, $coupon) {
     // Проверяем, активирован ли флаг "Только для первого заказа"
     if (get_post_meta($coupon->get_id(), 'only_first_order', true) === 'yes') {
         $user_orders = wc_get_orders([
@@ -27,8 +27,8 @@ function apply_coupon_only_first_order_with_removal($discount, $discounting_amou
     return $discount;
 }
 // Добавляем галочку "Только для первого заказа" в настройки купона.
-add_action('woocommerce_coupon_options', 'add_coupon_option_first_order_checkbox');
-function add_coupon_option_first_order_checkbox() {
+add_action('woocommerce_coupon_options', 'branam_add_coupon_option_first_order_checkbox');
+function branam_add_coupon_option_first_order_checkbox() {
     woocommerce_wp_checkbox([
         'id' => 'only_first_order',
         'label' => __('Только для первого заказа', 'brand-ambassador'),
@@ -36,8 +36,8 @@ function add_coupon_option_first_order_checkbox() {
     ]);
 }
 //Сохраняем значение галочки "Только для первого заказа".
-add_action('woocommerce_coupon_options_save', 'save_coupon_option_first_order_checkbox');
-function save_coupon_option_first_order_checkbox($post_id) {
+add_action('woocommerce_coupon_options_save', 'branam_save_coupon_option_first_order_checkbox');
+function branam_save_coupon_option_first_order_checkbox($post_id) {
     $only_first_order = isset($_POST['only_first_order']) ? 'yes' : 'no';
     update_post_meta($post_id, 'only_first_order', $only_first_order);
 }
@@ -45,7 +45,7 @@ function save_coupon_option_first_order_checkbox($post_id) {
 /**
  * Шорткод [user_coupon_name] наименование купона в личный кабинет амбассадора бренда.
  */
-function get_user_coupon_name() {
+function branam_get_user_coupon_name() {
     $user_id = get_current_user_id(); // Получить ID текущего пользователя
     if (!$user_id) {
         return __('Пользователь не авторизован.', 'brand-ambassador');
@@ -68,7 +68,7 @@ function get_user_coupon_name() {
 }
 
 // Регистрация шорткода для вывода названия купона
-add_shortcode('user_coupon_name', 'get_user_coupon_name');
+add_shortcode('user_coupon_name', 'branam_get_user_coupon_name');
 
 /**
  * Шорткод [user_related_orders] для вывода заказов в личном кабинете амбассадора бренда.
@@ -389,9 +389,9 @@ add_shortcode('user_total_orders', function () {
 /**
  * Регистрируем шорткод [ambassador_bank_form] для формы банковских данных
  */
-add_shortcode('ambassador_bank_form', 'render_bank_data_form');
+add_shortcode('ambassador_bank_form', 'branam_render_bank_data_form');
 
-function render_bank_data_form() {
+function branam_render_bank_data_form() {
     if (!is_user_logged_in()) {
         return '<p>' . __('Пожалуйста, войдите, чтобы заполнить банковские данные.', 'brand-ambassador') . '</p>';
     }
@@ -428,8 +428,8 @@ function render_bank_data_form() {
     return ob_get_clean();
 }
 
-add_action('init', 'process_bank_data_form');
-function process_bank_data_form() {
+add_action('init', 'branam_process_bank_data_form');
+function branam_process_bank_data_form() {
     if (!is_user_logged_in()) {
         return;
     }
@@ -486,9 +486,9 @@ function process_bank_data_form() {
 /**
  * Шорткод [ambassador_card_number] для вывода последних 4 цифр банковской карты.
  */
-add_shortcode('ambassador_card_number', 'render_ambassador_card_number');
+add_shortcode('ambassador_card_number', 'branam_render_ambassador_card_number');
 
-function render_ambassador_card_number() {
+function branam_render_ambassador_card_number() {
     if (!is_user_logged_in()) {
         return ''; // Если пользователь не авторизован, ничего не выводим
     }
