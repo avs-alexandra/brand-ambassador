@@ -3,7 +3,7 @@
 Plugin Name: Brand Ambassador
 Plugin URI: https://github.com/avs-alexandra/brand-ambassador
 Description: Плагин для управления амбассадорами бренда и их вознаграждениями.
-Version: 1.0.0
+Version: 1.0.4
 Author: Ваша Имя
 Author URI: https://github.com/avs-alexandra
 Text Domain: brand-ambassador
