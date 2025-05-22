@@ -198,7 +198,7 @@ add_shortcode('user_related_orders', function () {
     echo '</form>';
 
     // Заголовок с выбранным месяцем и годом
-    echo '<h3 class="selected-month-year-title">' . esc_html(sprintf(__('Заказы со статусом выполнен* за %s %d:', 'brand-ambassador'), date_i18n('F', mktime(0, 0, 0, $month, 10)), $year)) . '</h3>';
+    echo '<h3 class="selected-month-year-title">' . esc_html(sprintf(__('Заказы со статусом выполнен* за %1$s %2$d:', 'brand-ambassador'), date_i18n('F', mktime(0, 0, 0, $month, 10)), $year)) . '</h3>';
 
     if (empty($orders_completed)) {
         // Если заказов нет
@@ -220,7 +220,7 @@ add_shortcode('user_related_orders', function () {
                     $order_count++;
                     echo '<li>';
                     echo sprintf(
-                     __('№%d от %s c купоном: %s — %s', 'brand-ambassador'),
+                     __('№%1$d от %2$s c купоном: %3$s — %4$s', 'brand-ambassador'),
                     (int) $order->get_id(),
                       esc_html(date_i18n(get_option('date_format'), strtotime($order->get_date_created()))),
                       esc_html($coupon_code),
@@ -243,7 +243,7 @@ add_shortcode('user_related_orders', function () {
             // Вывод информации о выплате
             echo '<p class="payout">' . esc_html(
              sprintf(
-             __('Выплата за %s %d составит %d * %dруб = %dруб', 'brand-ambassador'),
+             __('Выплата за %1$s %2$d составит %3$d * %4$dруб = %5$dруб', 'brand-ambassador'),
              date_i18n('F', mktime(0, 0, 0, $month, 10)),
             $year,
             $order_count,
@@ -272,7 +272,7 @@ add_shortcode('user_related_orders', function () {
                 if (in_array(strtolower($coupon_code), $related_coupons, true)) {
                     echo '<li>';
                     echo sprintf(
-                     __('№%d от %s, Статус: %s', 'brand-ambassador'),
+                     __('№%1$d от %2$s, Статус: %3$s', 'brand-ambassador'),
                     (int) $order->get_id(),
                      esc_html(date_i18n(get_option('date_format'), strtotime($order->get_date_created()))),
                      esc_html(wc_get_order_status_name($order->get_status()))
