@@ -56,7 +56,7 @@ class CouponPayoutsHandler {
             // Сохраняем результат расчёта и выбранные заказы во временные данные
             set_transient('coupon_payout_calculation_result', $calculation_result, 30); // Результат расчёта
             set_transient('coupon_payout_selected_orders', $selected_orders, 30); // Выбранные заказы
-            set_transient('show_action_buttons', true, 30); // Флаг для отображения кнопок
+            set_transient('branam_show_action_buttons', true, 30); // Флаг для отображения кнопок
         } elseif (!empty($selected_orders)) {
             // Обработка статуса выплат
             foreach ($selected_orders as $order_id => $status) {
