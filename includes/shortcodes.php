@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Не шорткод. Добавляем возможность купону только для первой покупки
  */
-add_filter('woocommerce_coupon_get_discount_amount', 'apply_coupon_only_first_order_with_removal', 10, 5);
+add_filter('woocommerce_coupon_get_discount_amount', 'branam_apply_coupon_only_first_order_with_removal', 10, 5);
 function branam_apply_coupon_only_first_order_with_removal($discount, $discounting_amount, $cart_item, $single, $coupon) {
     // Проверяем, активирован ли флаг "Только для первого заказа"
     if (get_post_meta($coupon->get_id(), 'only_first_order', true) === 'yes') {
