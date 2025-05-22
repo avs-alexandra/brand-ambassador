@@ -36,7 +36,7 @@ class AmbassadorNotifications {
             $coupon_id = $coupon->get_id();
 
             // Проверяем, есть ли связанный Амбассадор
-            $ambassador_id = get_post_meta($coupon_id, '_ambassador_user', true);
+            $ambassador_id = get_post_meta($coupon_id, '_branam_ambassador_user', true);
             if (!$ambassador_id) {
                 continue;
             }
@@ -48,7 +48,7 @@ class AmbassadorNotifications {
             }
 
             // Формируем тему письма из настроек
-            $email_subject = get_option('ambassador_email_subject', __('Ваш купон был использован!', 'brand-ambassador'));
+            $email_subject = get_option('branam_ambassador_email_subject', __('Ваш купон был использован!', 'brand-ambassador'));
 
             // Формируем текст письма
             $email_body = $this->generate_email_content($ambassador, $coupon_code, $order_id);
@@ -68,8 +68,8 @@ class AmbassadorNotifications {
      */
     private function generate_email_content($ambassador, $coupon_code, $order_id) {
         // Получаем текст письма и шрифт из настроек "Настройки Амбассадора"
-        $email_template = get_option('ambassador_email_template', 'Здравствуйте, [ambassador]! Ваш купон "[coupon]" был использован для заказа №[order_id].');
-        $email_font = get_option('ambassador_email_font', 'Arial, sans-serif');
+        $email_template = get_option('branam_ambassador_email_template', 'Здравствуйте, [ambassador]! Ваш купон "[coupon]" был использован для заказа №[order_id].');
+        $email_font = get_option('branam_ambassador_email_font', 'Arial, sans-serif');
 
         // Заменяем плейсхолдеры на реальные данные
         $email_body = strtr($email_template, [
@@ -95,7 +95,7 @@ class AmbassadorNotifications {
         $footer_template = plugin_dir_path(__FILE__) . '../templates/email_footer.php';
 
         // Получаем шрифт из настроек "Настройки Амбассадора"
-        $email_font = get_option('ambassador_email_font', 'Arial, sans-serif');
+        $email_font = get_option('branam_ambassador_email_font', 'Arial, sans-serif');
 
         // Генерация шапки
         ob_start();
@@ -104,11 +104,11 @@ class AmbassadorNotifications {
         }
         $header = ob_get_clean();
         $header = strtr($header, [
-        '{background_color}' => esc_attr(get_option("woocommerce_email_background_color", "#f5f5f5")),
-        '{woocommerce_email_base_color}' => esc_attr(get_option("woocommerce_email_base_color", "#007cba")),
-        '{title}' => esc_html($subject),
-        '{font_family}' => esc_attr($email_font),
-         ]);
+            '{background_color}' => esc_attr(get_option("woocommerce_email_background_color", "#f5f5f5")),
+            '{woocommerce_email_base_color}' => esc_attr(get_option("woocommerce_email_base_color", "#007cba")),
+            '{title}' => esc_html($subject),
+            '{font_family}' => esc_attr($email_font),
+        ]);
 
         // Генерация подвала
         ob_start();
@@ -116,13 +116,13 @@ class AmbassadorNotifications {
             include $footer_template;
         }
         $footer = ob_get_clean();
-       $footer = strtr($footer, [
-        '{text_color}'   => esc_attr(get_option("woocommerce_email_text_color", "#444444")),
-        '{description}'  => esc_html(get_option('woocommerce_email_footer_text', __("Спасибо за использование нашего сервиса!", "brand-ambassador"))),
-        '{site_title}'   => esc_html(get_bloginfo('name')),
-        '{site_url}'     => esc_url(home_url()),
-        '{year}'         => esc_html(date('Y')),
-        '{font_family}'  => esc_attr($email_font), // Применяем шрифт
+        $footer = strtr($footer, [
+            '{text_color}'   => esc_attr(get_option("woocommerce_email_text_color", "#444444")),
+            '{description}'  => wp_kses_post(get_option('woocommerce_email_footer_text', __("Спасибо за использование нашего сервиса!", "brand-ambassador"))),
+            '{site_title}'   => esc_html(get_bloginfo('name')),
+            '{site_url}'     => esc_url(home_url()),
+            '{year}'         => esc_html(date('Y')),
+            '{font_family}'  => esc_attr($email_font), // Применяем шрифт
         ]);
 
         // Объединяем шапку, тело и подвал
