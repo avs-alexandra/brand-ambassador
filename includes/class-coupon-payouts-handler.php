@@ -35,7 +35,7 @@ class CouponPayoutsHandler {
         // Проверяем, выбраны ли строки с разными статусами выплат
         $statuses = [];
         foreach ($selected_orders as $order_id => $value) {
-            $current_status = get_post_meta($order_id, '_payout_status', true);
+            $current_status = get_post_meta($order_id, '_branam_payout_status', true);
             $statuses[] = $current_status;
         }
 
@@ -54,16 +54,16 @@ class CouponPayoutsHandler {
             $calculation_result = $this->calculate_payout_sum($selected_orders);
 
             // Сохраняем результат расчёта и выбранные заказы во временные данные
-            set_transient('coupon_payout_calculation_result', $calculation_result, 30); // Результат расчёта
-            set_transient('coupon_payout_selected_orders', $selected_orders, 30); // Выбранные заказы
+            set_transient('branam_coupon_payout_calculation_result', $calculation_result, 30); // Результат расчёта
+            set_transient('branam_coupon_payout_selected_orders', $selected_orders, 30); // Выбранные заказы
             set_transient('branam_show_action_buttons', true, 30); // Флаг для отображения кнопок
         } elseif (!empty($selected_orders)) {
             // Обработка статуса выплат
             foreach ($selected_orders as $order_id => $status) {
                 if ($action_type === 'mark_paid') {
-                    update_post_meta($order_id, '_payout_status', 'paid'); // Устанавливаем статус "Выплачено"
+                    update_post_meta($order_id, '_branam_payout_status', 'paid'); // Устанавливаем статус "Выплачено"
                 } elseif ($action_type === 'mark_unpaid') {
-                    update_post_meta($order_id, '_payout_status', 'unpaid'); // Устанавливаем статус "Не выплачено"
+                    update_post_meta($order_id, '_branam_payout_status', 'unpaid'); // Устанавливаем статус "Не выплачено"
                 }
             }
         }
@@ -86,10 +86,10 @@ class CouponPayoutsHandler {
         }
 
         // Получаем текущие настройки для ролей и выплат
-        $blogger_role = get_option('blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
-        $expert_role = get_option('expert_role', 'subscriber'); // Роль для экспертов (по умолчанию subscriber)
-        $blogger_reward = get_option('blogger_reward', 450); // Выплата для блогеров (по умолчанию 450)
-        $expert_reward = get_option('expert_reward', 600); // Выплата для экспертов (по умолчанию 600)
+        $blogger_role = get_option('branam_blogger_role', 'customer'); // Роль для блогеров (по умолчанию customer)
+        $expert_role = get_option('branam_expert_role', 'subscriber'); // Роль для экспертов (по умолчанию subscriber)
+        $blogger_reward = get_option('branam_blogger_reward', 450); // Выплата для блогеров (по умолчанию 450)
+        $expert_reward = get_option('branam_expert_reward', 600); // Выплата для экспертов (по умолчанию 600)
 
         $ambassadors = [];
         foreach ($selected_orders as $order_id => $value) {
@@ -99,7 +99,7 @@ class CouponPayoutsHandler {
             $coupon_codes = $order->get_coupon_codes();
             foreach ($coupon_codes as $coupon_code) {
                 $coupon = new WC_Coupon($coupon_code);
-                $associated_user_id = get_post_meta($coupon->get_id(), '_ambassador_user', true);
+                $associated_user_id = get_post_meta($coupon->get_id(), '_branam_ambassador_user', true);
                 if (!$associated_user_id) continue;
 
                 $user = get_userdata($associated_user_id);
@@ -148,7 +148,7 @@ class CouponPayoutsHandler {
         $user_level = $ambassador['level'];
 
         // Расшифровка номера карты
-        $encrypted_card_number = get_user_meta($user->ID, 'user_numbercartbank', true);
+        $encrypted_card_number = get_user_meta($user->ID, 'branam_user_numbercartbank', true);
         $decrypted_card_number = !empty($encrypted_card_number) ? AmbassadorSettingsPage::decrypt_data($encrypted_card_number) : esc_html__('Не указан', 'brand-ambassador');
 
         return [
@@ -163,7 +163,7 @@ class CouponPayoutsHandler {
                 esc_html($sum),
                 esc_html($user_level),
                 esc_html($decrypted_card_number),
-                esc_html(get_user_meta($user->ID, 'user_bankname', true))
+                esc_html(get_user_meta($user->ID, 'branam_user_bankname', true))
             ),
         ];
     }
