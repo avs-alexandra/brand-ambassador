@@ -66,7 +66,7 @@ class CouponPayoutsHandler {
  */
 private function calculate_payout_sum($selected_orders) {
     if (empty($selected_orders)) {
-        return ['error' => __('Выберите хотя бы одну строку для расчёта.', 'brand-ambassador')];
+        return ['error' => esc_html__('Выберите хотя бы одну строку для расчёта.', 'brand-ambassador')];
     }
 
     // Получаем текущие настройки для ролей и выплат
@@ -120,7 +120,7 @@ private function calculate_payout_sum($selected_orders) {
 
     if (count($ambassadors) > 1) {
         return [
-            'error' => __('Выбрано несколько Амбассадоров, пожалуйста, измените выбор.', 'brand-ambassador'),
+            'error' => esc_html__('Выбрано несколько Амбассадоров, пожалуйста, измените выбор.', 'brand-ambassador'),
         ];
     }
 
@@ -133,22 +133,22 @@ private function calculate_payout_sum($selected_orders) {
 
     // Расшифровка номера карты
     $encrypted_card_number = get_user_meta($user->ID, 'user_numbercartbank', true);
-    $decrypted_card_number = !empty($encrypted_card_number) ? AmbassadorSettingsPage::decrypt_data($encrypted_card_number) : __('Не указан', 'brand-ambassador');
+    $decrypted_card_number = !empty($encrypted_card_number) ? AmbassadorSettingsPage::decrypt_data($encrypted_card_number) : esc_html__('Не указан', 'brand-ambassador');
 
     return [
         'message' => sprintf(
-            __('Общая сумма выплаты за %s %d для %s (%s): %d*%dруб = %dруб<br>Уровень: %s<br>№ карты: %s<br>Банк: %s', 'brand-ambassador'),
-            date_i18n('F'),
-            date('Y'),
-            $user->display_name,
-            $user->user_email,
-            $orders_count,
-            $reward,
-            $sum,
-            $user_level,
-            $decrypted_card_number, // Отображение расшифрованного номера карты
-            get_user_meta($user->ID, 'user_bankname', true)
-        ),
+    __('Общая сумма выплаты за %s %d для %s (%s): %d*%dруб = %dруб<br>Уровень: %s<br>№ карты: %s<br>Банк: %s', 'brand-ambassador'),
+    esc_html(date_i18n('F')),
+    esc_html(date('Y')),
+    esc_html($user->display_name),
+    esc_html($user->user_email),
+    esc_html($orders_count),
+    esc_html($reward),
+    esc_html($sum),
+    esc_html($user_level),
+    esc_html($decrypted_card_number),
+    esc_html(get_user_meta($user->ID, 'user_bankname', true))
+       ),
     ];
 }
 }
