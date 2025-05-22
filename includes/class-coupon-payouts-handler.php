@@ -153,7 +153,7 @@ class CouponPayoutsHandler {
 
         return [
             'message' => sprintf(
-                __('Общая сумма выплаты за %s %d для %s (%s): %d*%dруб = %dруб<br>Уровень: %s<br>№ карты: %s<br>Банк: %s', 'brand-ambassador'),
+                __('Общая сумма выплаты за %1$s %2$d для %3$s (%4$s): %5$d*%6$dруб = %7$dруб<br>Уровень: %8$s<br>№ карты: %9$s<br>Банк: %10$s', 'brand-ambassador'),
                 esc_html(date_i18n('F')),
                 esc_html(date('Y')),
                 esc_html($user->display_name),
