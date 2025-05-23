@@ -101,7 +101,7 @@ add_shortcode('user_related_orders', function () {
         return __('У вас нет доступа к статистике.', 'brand-ambassador');
     }
 
-    // Ищем купоны, связанные с текущим пользователем
+    // Ищем купоны, связанные с текущим пользователем (HPOS-совместимо)
     $args_coupons = [
         'post_type'      => 'shop_coupon',
         'posts_per_page' => -1,
@@ -133,35 +133,22 @@ add_shortcode('user_related_orders', function () {
         return __('Неверный месяц.', 'brand-ambassador');
     }
 
-    // Поиск заказов со статусом "выполнен" и применёнными купонами
+    // Поиск заказов через WC_Order_Query (HPOS ONLY)
     $args_orders_completed = [
-        'post_type'      => 'shop_order',
-        'post_status'    => 'wc-completed', // Только выполненные заказы
-        'posts_per_page' => -1,
-        'date_query'     => [
-            [
-                'year'  => $year,
-                'month' => $month,
-            ],
-        ],
+        'status'    => 'wc-completed',
+        'limit'     => -1,
+        'date_created' => $year . '-' . sprintf('%02d', $month) . '-01 00:00:00...' . $year . '-' . sprintf('%02d', $month) . '-31 23:59:59',
+        'return'    => 'ids',
     ];
+    $orders_completed_ids = (new WC_Order_Query($args_orders_completed))->get_orders();
 
-    $orders_completed = get_posts($args_orders_completed);
-
-    // Поиск заказов со статусами ['wc-delivery', 'wc-completed', 'wc-processing', 'wc-cancelled']
     $args_orders_other_statuses = [
-        'post_type'      => 'shop_order',
-        'post_status'    => ['wc-delivery', 'wc-completed', 'wc-processing', 'wc-cancelled'], // Дополнительные статусы
-        'posts_per_page' => -1,
-        'date_query'     => [
-            [
-                'year'  => $year,
-                'month' => $month,
-            ],
-        ],
+        'status'    => ['wc-delivery', 'wc-completed', 'wc-processing', 'wc-cancelled'],
+        'limit'     => -1,
+        'date_created' => $year . '-' . sprintf('%02d', $month) . '-01 00:00:00...' . $year . '-' . sprintf('%02d', $month) . '-31 23:59:59',
+        'return'    => 'ids',
     ];
-
-    $orders_other_statuses = get_posts($args_orders_other_statuses);
+    $orders_other_statuses_ids = (new WC_Order_Query($args_orders_other_statuses))->get_orders();
 
     // Формируем вывод
     ob_start();
@@ -200,7 +187,7 @@ add_shortcode('user_related_orders', function () {
     // Заголовок с выбранным месяцем и годом
     echo '<h3 class="selected-month-year-title">' . esc_html(sprintf(__('Заказы со статусом выполнен* за %1$s %2$d:', 'brand-ambassador'), date_i18n('F', mktime(0, 0, 0, $month, 10)), $year)) . '</h3>';
 
-    if (empty($orders_completed)) {
+    if (empty($orders_completed_ids)) {
         // Если заказов нет
         echo '<p>' . __('Нет выполненных заказов за выбранный период.', 'brand-ambassador') . '</p>';
     } else {
@@ -208,8 +195,8 @@ add_shortcode('user_related_orders', function () {
         $order_count = 0;
         echo '<ul>';
 
-        foreach ($orders_completed as $order_post) {
-            $order = wc_get_order($order_post->ID);
+        foreach ($orders_completed_ids as $order_id) {
+            $order = wc_get_order($order_id);
             $used_coupons = $order->get_coupon_codes(); // Получаем применённые купоны
             $payout_status = get_post_meta($order->get_id(), '_branam_payout_status', true); // Получаем статус выплаты
             $payout_label = $payout_status === 'paid' ? __('Вознаграждение выплачено', 'brand-ambassador') : __('Нет выплаты', 'brand-ambassador');
@@ -222,7 +209,7 @@ add_shortcode('user_related_orders', function () {
                     echo sprintf(
                      __('№%1$d от %2$s c купоном: %3$s — %4$s', 'brand-ambassador'),
                     (int) $order->get_id(),
-                      esc_html(date_i18n(get_option('date_format'), strtotime($order->get_date_created()))),
+                      esc_html($order->get_date_created()->date_i18n(get_option('date_format'))),
                       esc_html($coupon_code),
                       esc_html($payout_label)
                     );
@@ -257,15 +244,15 @@ add_shortcode('user_related_orders', function () {
     // Заголовок для заказов с другими статусами
     echo '<p class="other-statuses-title">' . __('Посмотреть заказы в статусе: обработка, доставка, отменён, выполнен', 'brand-ambassador') . '</p>';
 
-    if (empty($orders_other_statuses)) {
+    if (empty($orders_other_statuses_ids)) {
         // Если заказов с другими статусами нет
         echo '<p class="other-statuses-none">' . __('Нет заказов с другими статусами за выбранный период.', 'brand-ambassador') . '</p>';
     } else {
         // Если заказы с другими статусами найдены
         echo '<ul class="other-statuses-list">';
 
-        foreach ($orders_other_statuses as $order_post) {
-            $order = wc_get_order($order_post->ID);
+        foreach ($orders_other_statuses_ids as $order_id) {
+            $order = wc_get_order($order_id);
             $used_coupons = $order->get_coupon_codes(); // Получаем применённые купоны
 
             foreach ($used_coupons as $coupon_code) {
@@ -274,7 +261,7 @@ add_shortcode('user_related_orders', function () {
                     echo sprintf(
                      __('№%1$d от %2$s, Статус: %3$s', 'brand-ambassador'),
                     (int) $order->get_id(),
-                     esc_html(date_i18n(get_option('date_format'), strtotime($order->get_date_created()))),
+                     esc_html($order->get_date_created()->date_i18n(get_option('date_format'))),
                      esc_html(wc_get_order_status_name($order->get_status()))
                     );
                     echo '</li>';
@@ -347,21 +334,20 @@ add_shortcode('user_total_orders', function () {
         $related_coupons[] = strtolower($coupon->post_title); // Приводим к нижнему регистру для сопоставления
     }
 
-    // Поиск всех выполненных заказов со статусом "выполнен" и применёнными купонами
+    // Поиск всех выполненных заказов через WC_Order_Query (HPOS ONLY)
     $args_orders = [
-        'post_type'      => 'shop_order',
-        'post_status'    => 'wc-completed', // Только выполненные заказы
-        'posts_per_page' => -1,
+        'status'    => 'wc-completed',
+        'limit'     => -1,
+        'return'    => 'ids',
     ];
-
-    $orders = get_posts($args_orders);
+    $order_ids = (new WC_Order_Query($args_orders))->get_orders();
 
     // Подсчёт общего количества заказов и общей комиссии
     $order_count = 0;
     $total_reward = 0;
 
-    foreach ($orders as $order_post) {
-        $order = wc_get_order($order_post->ID);
+    foreach ($order_ids as $order_id) {
+        $order = wc_get_order($order_id);
         $used_coupons = $order->get_coupon_codes(); // Получаем применённые купоны
 
         foreach ($used_coupons as $coupon_code) {
