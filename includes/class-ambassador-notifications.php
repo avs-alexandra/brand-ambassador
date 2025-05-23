@@ -24,7 +24,7 @@ class AmbassadorNotifications {
         }
 
         // Получаем использованные купоны
-        $used_coupons = $order->get_used_coupons();
+        $used_coupons = $order->get_coupon_codes();
 
         if (empty($used_coupons)) {
             return;
