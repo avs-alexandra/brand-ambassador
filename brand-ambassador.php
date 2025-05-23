@@ -2,7 +2,7 @@
 /*
 Plugin Name: Brand Ambassador
 Plugin URI: https://github.com/avs-alexandra/brand-ambassador
-Description: Plugin for managing brand ambassadors and their rewards in WooCommerce.
+Description: Plugin for managing brand ambassadors and their rewards in WooCommerce. Requires WooCommerce High-Performance Order Storage (HPOS) to be enabled!
 Version: 1.0.4
 Author: avs-alexandra
 Author URI: https://github.com/avs-alexandra
