@@ -141,6 +141,12 @@ class AmbassadorSettingsPage {
         ?>
         <div class="wrap">
             <h1><?php esc_html_e('Настройки Амбассадора бренда', 'brand-ambassador'); ?></h1>
+            <!-- ВАЖНО: Информация о HPOS -->
+          <div style="margin-bottom:10px;">
+           <strong style="color:#788c1c; font-size: 14px;">
+            <?php esc_html_e('Внимание! Этот плагин работает только с WooCommerce High-Performance Order Storage (HPOS).', 'brand-ambassador'); ?>
+            </strong>
+            </div>
             <form method="post" action="options.php">
                 <?php settings_fields('ambassador_settings'); ?>
                 <?php do_settings_sections('ambassador_settings'); ?>
