@@ -1,7 +1,7 @@
 # brand-ambassador
 ## Амбассадор бренда для Woocommerce
 
-## <a href="https://github.com/avs-alexandra/brand-ambassador/releases/download/v1.1.0/brand-ambassador.zip">Скачать плагин</a>
+## <a href="https://github.com/avs-alexandra/brand-ambassador/releases/download/v1.0.0/brand-ambassador.zip">Скачать плагин</a>
 
 Лёгкий, но функциональный плагин для программы Амбассадор бренда для Woocommerce.
 <br>Суть: компания приглашает к сотрудничеству Амбассадоров бренда и предоставляет личный купон. 
