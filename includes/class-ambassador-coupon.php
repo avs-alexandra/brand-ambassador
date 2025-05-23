@@ -416,7 +416,7 @@ class AmbassadorCouponProgram {
      */
     public function display_associated_user_in_order($order) {
         // Получаем все применённые купоны в заказе
-        $used_coupons = $order->get_used_coupons();
+        $used_coupons = $order->get_coupon_codes();
 
         if (!empty($used_coupons)) {
             echo '<div class="used-coupons">';
