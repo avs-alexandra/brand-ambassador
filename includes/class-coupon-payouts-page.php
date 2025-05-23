@@ -17,24 +17,27 @@ class CouponPayoutsPage {
     }
 
     /**
-     * Получает минимальный год, в котором есть заказы
+     * Получает минимальный год, в котором есть заказы (HPOS-ONLY: через WC_Order_Query)
      */
     private function get_minimum_order_year() {
-        global $wpdb;
-
-        // Подготавливаем запрос с использованием $wpdb->prepare()
-        $query = "
-            SELECT YEAR(MIN(post_date))
-            FROM {$wpdb->posts}
-            WHERE post_type = %s
-              AND post_status IN (%s, %s, %s)
-        ";
-
-        // Выполняем запрос с безопасными параметрами
-        $result = $wpdb->get_var($wpdb->prepare($query, 'shop_order', 'wc-completed', 'wc-processing', 'wc-on-hold'));
-
-        // Возвращаем результат, по умолчанию текущий год, если ничего не найдено
-        return $result ? absint($result) : date('Y');
+        $args = [
+            'status' => ['wc-completed', 'wc-processing', 'wc-on-hold'],
+            'limit'  => 1,
+            'orderby' => 'date',
+            'order'   => 'ASC',
+            'return'  => 'ids',
+        ];
+        $query = new WC_Order_Query($args);
+        $order_ids = $query->get_orders();
+        if (empty($order_ids)) {
+            return date('Y');
+        }
+        $order = wc_get_order($order_ids[0]);
+        if (!$order) {
+            return date('Y');
+        }
+        $date_created = $order->get_date_created();
+        return $date_created ? (int)$date_created->format('Y') : date('Y');
     }
 
     /**
@@ -88,31 +91,37 @@ class CouponPayoutsPage {
             return;
         }
 
-        // Параметры для WP_Query
-        $args = [
-            'post_type'      => 'shop_order',
-            'post_status'    => 'wc-completed', // Только выполненные заказы
-            'posts_per_page' => -1,            // Без ограничения на количество
-            'date_query'     => [
-                [
-                    'year'  => $year,
-                ],
-            ],
-        ];
-
-        // Если выбран конкретный месяц, добавляем его в date_query
+        // Формируем аргументы для выборки заказов через HPOS (WC_Order_Query)
+        $date_query = [];
+        if ($year) {
+            $date_query['after'] = $year . '-01-01 00:00:00';
+            $date_query['before'] = $year . '-12-31 23:59:59';
+        }
         if ($month > 0) {
-            $args['date_query'][0]['month'] = $month;
+            $date_query['after'] = $year . '-' . sprintf('%02d', $month) . '-01 00:00:00';
+            $date_query['before'] = $year . '-' . sprintf('%02d', $month) . '-31 23:59:59';
         }
 
-        // Получаем заказы через WP_Query
-        $query = new WP_Query($args);
+        $args = [
+            'status' => 'wc-completed',
+            'limit'  => -1,
+            'orderby' => 'date',
+            'order' => 'DESC',
+            'return' => 'ids',
+        ];
+        if (!empty($date_query)) {
+            $args['date_created'] = $date_query['after'] . '...' . $date_query['before'];
+        }
+
+        // Получаем заказы через WC_Order_Query (HPOS!)
+        $query = new WC_Order_Query($args);
+        $order_ids = $query->get_orders();
         $orders = [];
 
         // Собираем данные
-        while ($query->have_posts()) {
-            $query->the_post();
-            $order = wc_get_order(get_the_ID());
+        foreach ($order_ids as $order_id) {
+            $order = wc_get_order($order_id);
+            if (!$order) continue;
             $coupon_codes = $order->get_coupon_codes();
 
             foreach ($coupon_codes as $coupon_code) {
@@ -274,7 +283,7 @@ class CouponPayoutsPage {
                                         <input type="checkbox" class="row-checkbox" name="payout_status[<?php echo esc_attr($order['order_id']); ?>]" value="1" <?php echo isset($selected_orders[$order['order_id']]) ? 'checked' : ''; ?>>
                                     </td>
                                     <td><?php echo esc_html($order['order_id']); ?></td>
-                                    <td><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($order['date']))); ?></td>
+                                    <td><?php echo esc_html($order['date'] ? $order['date']->date_i18n(get_option('date_format')) : ''); ?></td>
                                     <td><a href="<?php echo $order['coupon_edit_url']; ?>" target="_blank"><?php echo esc_html($order['coupon_code']); ?></a></td>
                                     <td><?php echo $order['user_display']; ?></td>
                                     <td><?php echo esc_html($order['role']); ?></td>
