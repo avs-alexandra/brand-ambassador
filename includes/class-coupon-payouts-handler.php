@@ -16,14 +16,27 @@ class CouponPayoutsHandler {
         ) {
             wp_die(esc_html__('Ошибка безопасности. Попробуйте снова.', 'brand-ambassador'));
         }
-
         // 2. Проверка прав пользователя
         if (!current_user_can('manage_woocommerce')) {
             wp_die(esc_html__('Недостаточно прав для выполнения действия.', 'brand-ambassador'));
         }
 
-        $action_type = isset($_POST['action_type']) ? sanitize_text_field($_POST['action_type']) : ''; // Тип действия
-        $selected_orders = isset($_POST['payout_status']) ? $_POST['payout_status'] : []; // Выбранные заказы
+        $action_type = isset($_POST['action_type']) ? sanitize_text_field(wp_unslash($_POST['action_type'])) : ''; // Тип действия
+
+        // Безопасная обработка массива payout_status
+        $selected_orders = [];
+        $raw_post = $_POST; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Сразу обработаем ниже
+        $raw_payout_status = array_key_exists('payout_status', $raw_post) ? wp_unslash($raw_post['payout_status']) : [];
+        if (is_array($raw_payout_status)) {
+            foreach ($raw_payout_status as $order_id => $value) {
+                $safe_order_id = absint($order_id);
+                $safe_value = sanitize_text_field($value);
+                if ($safe_order_id > 0) {
+                    $selected_orders[$safe_order_id] = $safe_value;
+                }
+            }
+        }
+
         $calculation_result = null; // Результат расчёта
 
         // Проверяем, выбраны ли заказы
@@ -151,8 +164,10 @@ class CouponPayoutsHandler {
         $encrypted_card_number = get_user_meta($user->ID, 'branam_user_numbercartbank', true);
         $decrypted_card_number = !empty($encrypted_card_number) ? AmbassadorSettingsPage::decrypt_data($encrypted_card_number) : esc_html__('Не указан', 'brand-ambassador');
 
+        // translators: 1: месяц, 2: год, 3: имя, 4: email, 5: кол-во заказов, 6: сумма за заказ, 7: сумма итого, 8: уровень, 9: номер карты, 10: банк
         return [
             'message' => sprintf(
+                // translators: 1: месяц, 2: год, 3: имя, 4: email, 5: кол-во заказов, 6: сумма за заказ, 7: сумма итого, 8: уровень, 9: номер карты, 10: банк
                 __('Общая сумма выплаты за %1$s %2$d для %3$s (%4$s): %5$d*%6$dруб = %7$dруб<br>Уровень: %8$s<br>№ карты: %9$s<br>Банк: %10$s', 'brand-ambassador'),
                 esc_html(date_i18n('F')),
                 esc_html(gmdate('Y')),
