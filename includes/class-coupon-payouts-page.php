@@ -30,14 +30,14 @@ class CouponPayoutsPage {
         $query = new WC_Order_Query($args);
         $order_ids = $query->get_orders();
         if (empty($order_ids)) {
-            return date('Y');
+            return gmdate('Y');
         }
         $order = wc_get_order($order_ids[0]);
         if (!$order) {
-            return date('Y');
+            return gmdate('Y');
         }
         $date_created = $order->get_date_created();
-        return $date_created ? (int)$date_created->format('Y') : date('Y');
+        return $date_created ? (int)$date_created->format('Y') : gmdate('Y');
     }
 
     /**
@@ -52,7 +52,7 @@ class CouponPayoutsPage {
         }
         // Редирект, если параметры m и y отсутствуют
         if (!isset($_GET['m']) || !isset($_GET['y'])) {
-            wp_safe_redirect(add_query_arg(['m' => 0, 'y' => date('Y')], admin_url('admin.php?page=coupon-payouts')));
+            wp_safe_redirect(add_query_arg(['m' => 0, 'y' => gmdate('Y')], admin_url('admin.php?page=coupon-payouts')));
             exit;
         }
         // Получаем результат расчёта из transient
@@ -77,7 +77,7 @@ class CouponPayoutsPage {
 
         // Получаем параметры из GET-запроса
         $month = isset($_GET['m']) ? absint($_GET['m']) : 0; // 0 = Все месяцы
-        $year = isset($_GET['y']) ? absint($_GET['y']) : date('Y');
+        $year = isset($_GET['y']) ? absint($_GET['y']) : gmdate('Y');
         $user_filter = isset($_GET['user']) ? sanitize_text_field($_GET['user']) : '';
         $email_sort = isset($_GET['email_sort']) ? sanitize_text_field($_GET['email_sort']) : '';
         $level_filter = isset($_GET['level']) ? sanitize_text_field($_GET['level']) : '';
@@ -86,7 +86,7 @@ class CouponPayoutsPage {
         $min_year = $this->get_minimum_order_year();
 
         // Проверяем, корректны ли значения года
-        if ($year < $min_year || $year > date('Y')) {
+        if ($year < $min_year || $year > gmdate('Y')) {
             echo '<div class="notice notice-error"><p>' . esc_html__('Ошибка: Неверный год.', 'brand-ambassador') . '</p></div>';
             return;
         }
@@ -221,7 +221,7 @@ class CouponPayoutsPage {
 
                 <label for="year"><?php esc_html_e('Год:', 'brand-ambassador'); ?></label>
                 <select id="year" name="y">
-                    <?php for ($y = $min_year; $y <= date('Y'); $y++): ?>
+                    <?php for ($y = $min_year; $y <= gmdate('Y'); $y++): ?>
                         <option value="<?php echo esc_attr($y); ?>" <?php selected($year, $y); ?>>
                             <?php echo esc_html($y); ?>
                         </option>
