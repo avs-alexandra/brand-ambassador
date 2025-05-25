@@ -78,6 +78,7 @@ class AmbassadorCouponProgram {
         <div class="options_group">
             <p class="form-field">
                 <label for="ambassador_user"><?php esc_html_e('Амбассадор (по email)', 'brand-ambassador'); ?></label>
+                <?php wp_nonce_field('save_ambassador_user_coupon', 'save_ambassador_user_coupon_nonce'); ?>
                 <select id="ambassador_user" name="ambassador_user" class="wc-user-search" style="width: 50%;" data-placeholder="<?php esc_attr_e('Начните вводить email', 'brand-ambassador'); ?>">
                     <?php if ($ambassador_user_id && $user_email_display): ?>
                         <option value="<?php echo esc_attr($ambassador_user_id); ?>" selected="selected">
@@ -88,10 +89,11 @@ class AmbassadorCouponProgram {
                 <?php if ($ambassador_user_id): ?>
                     <p>
                         <?php echo wp_kses_post(
-                         sprintf(
-                            __('Амбассадор: <a href="%s" target="_blank">%s</a>', 'brand-ambassador'),
-                            esc_url(get_edit_user_link($ambassador_user_id)),
-                            esc_html($user_email_display)
+                            sprintf(
+                                // translators: 1: ссылка на профиль амбассадора, 2: email амбассадора
+                                __('Амбассадор: <a href="%1$s" target="_blank">%2$s</a>', 'brand-ambassador'),
+                                esc_url(get_edit_user_link($ambassador_user_id)),
+                                esc_html($user_email_display)
                             )
                         ); ?>
                     </p>
@@ -102,70 +104,85 @@ class AmbassadorCouponProgram {
             </p>
         </div>
         <script>
-            jQuery(document).ready(function($) {
-                // Инициализация Select2
-                $('#ambassador_user').select2({
-                    ajax: {
-                        url: ajaxurl,
-                        dataType: 'json',
-                        delay: 250,
-                        data: function(params) {
-                            return {
-                                action: 'search_users_by_email',
-                                term: params.term,
-                                nonce: '<?php echo wp_create_nonce('search_users_by_email'); ?>'
-                            };
-                        },
-                        processResults: function(data) {
-                            return {
-                                results: data.results
-                            };
-                        },
-                        cache: true
+        jQuery(document).ready(function($) {
+            // Инициализация Select2
+            $('#ambassador_user').select2({
+                ajax: {
+                    url: ajaxurl,
+                    dataType: 'json',
+                    delay: 250,
+                    data: function(params) {
+                        return {
+                            action: 'search_users_by_email',
+                            term: params.term,
+                            nonce: '<?php echo esc_js( wp_create_nonce('search_users_by_email') ); ?>'
+                        };
                     },
-                    minimumInputLength: 2
-                });
+                    processResults: function(data) {
+                        return {
+                            results: data.results
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 2
+            });
 
-                // Кнопка "Отвязать пользователя"
-                $('.unlink-user-button').on('click', function() {
-                    var couponId = $(this).data('coupon-id');
-                    $.post(ajaxurl, {
-                        action: 'unlink_user_from_coupon',
-                        coupon_id: couponId,
-                        nonce: '<?php echo wp_create_nonce('unlink_user_nonce'); ?>'
-                    }, function(response) {
-                        if (response.success) {
-                            alert('<?php esc_html_e('Пользователь отвязан от купона.', 'brand-ambassador'); ?>');
-                            location.reload();
-                        } else {
-                            alert('<?php esc_html_e('Ошибка при отвязке пользователя.', 'brand-ambassador'); ?>');
-                        }
-                    });
+            // Кнопка "Отвязать пользователя"
+            $('.unlink-user-button').on('click', function() {
+                var couponId = $(this).data('coupon-id');
+                $.post(ajaxurl, {
+                    action: 'unlink_user_from_coupon',
+                    coupon_id: couponId,
+                    nonce: '<?php echo esc_js( wp_create_nonce('unlink_user_nonce') ); ?>'
+                }, function(response) {
+                    if (response.success) {
+                        alert('<?php esc_html_e('Пользователь отвязан от купона.', 'brand-ambassador'); ?>');
+                        location.reload();
+                    } else {
+                        alert('<?php esc_html_e('Ошибка при отвязке пользователя.', 'brand-ambassador'); ?>');
+                    }
                 });
             });
+        });
         </script>
         <?php
     }
 
     /**
      * Сохранение пользователя для купона
+     * К одному пользователю можно привязать только один купон,
+     * и к одному купону — только одного пользователя.
+     * При привязке нового купона к пользователю — просто перепривязать без удаления старого купона.
      */
     public function save_user_field_to_coupon($post_id) {
+        if (
+            ! isset($_POST['save_ambassador_user_coupon_nonce']) ||
+            ! wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['save_ambassador_user_coupon_nonce'])), 'save_ambassador_user_coupon')
+        ) {
+            return;
+        }
         if (isset($_POST['ambassador_user'])) {
-            $new_user_id = sanitize_text_field($_POST['ambassador_user']);
+            $new_user_id = sanitize_text_field(wp_unslash($_POST['ambassador_user']));
+
+            // Получаем старого пользователя, привязанного к этому купону
             $old_user_id = get_post_meta($post_id, '_branam_ambassador_user', true);
 
-            // Удаляем купон из старого пользователя
+            // Если у купона был другой пользователь — убираем у него связь с этим купоном
             if ($old_user_id && $old_user_id !== $new_user_id) {
                 delete_user_meta($old_user_id, '_branam_user_coupon');
             }
 
-            // Привязываем купон к новому пользователю
-            update_post_meta($post_id, '_branam_ambassador_user', $new_user_id);
-
-            if ($new_user_id) {
-                update_user_meta($new_user_id, '_branam_user_coupon', $post_id);
+            // Если у нового пользователя уже был привязан другой купон — убираем связь с тем купоном
+            $old_coupon_id = get_user_meta($new_user_id, '_branam_user_coupon', true);
+            if ($old_coupon_id && $old_coupon_id != $post_id) {
+                // У убранного купона — тоже убираем связь с этим пользователем
+                delete_post_meta($old_coupon_id, '_branam_ambassador_user');
             }
+
+            // Привязываем новый купон к пользователю
+            update_post_meta($post_id, '_branam_ambassador_user', $new_user_id);
+            update_user_meta($new_user_id, '_branam_user_coupon', $post_id);
         }
     }
 
@@ -258,12 +275,12 @@ class AmbassadorCouponProgram {
         if (in_array($expert_role, (array) $user->roles) || in_array($blogger_role, (array) $user->roles)) {
             // Сохраняем Номер банковской карты
             if (isset($_POST['branam_user_numbercartbank'])) {
-                update_user_meta($user_id, 'branam_user_numbercartbank', sanitize_text_field($_POST['branam_user_numbercartbank']));
+                update_user_meta($user_id, 'branam_user_numbercartbank', sanitize_text_field(wp_unslash($_POST['branam_user_numbercartbank'])));
             }
 
             // Сохраняем Наименование банка
             if (isset($_POST['branam_user_bankname'])) {
-                update_user_meta($user_id, 'branam_user_bankname', sanitize_text_field($_POST['branam_user_bankname']));
+                update_user_meta($user_id, 'branam_user_bankname', sanitize_text_field(wp_unslash($_POST['branam_user_bankname'])));
             }
         }
     }
@@ -272,32 +289,32 @@ class AmbassadorCouponProgram {
      * Подключение стилей и скриптов для Select2
      */
     public function enqueue_select2_scripts($hook) {
-    if (!in_array($hook, ['post.php', 'post-new.php'])) {
-        return;
-    }
+        if (!in_array($hook, ['post.php', 'post-new.php'])) {
+            return;
+        }
 
-    $post_type = get_post_type();
-    if ($post_type !== 'shop_coupon') {
-        return;
+        $post_type = get_post_type();
+        if ($post_type !== 'shop_coupon') {
+            return;
+        }
+        // Локальное подключение!
+        wp_enqueue_script(
+            'select2',
+            plugin_dir_url(__DIR__) . '../assets/js/select2.min.js',
+            array('jquery'),
+            '4.1.0',
+            true
+        );
+        wp_enqueue_style(
+            'select2',
+            plugin_dir_url(__DIR__) . '../assets/css/select2.min.css',
+            array(),
+            '4.1.0'
+        );
     }
-    // Локальное подключение!
-    wp_enqueue_script(
-        'select2',
-        plugin_dir_url(__DIR__) . '../assets/js/select2.min.js',
-        array('jquery'),
-        '4.1.0',
-        true
-    );
-    wp_enqueue_style(
-        'select2',
-        plugin_dir_url(__DIR__) . '../assets/css/select2.min.css',
-        array(),
-        '4.1.0'
-    );
-}
 
     /**
-     * AJAX: Поиск пользователей по email с фильтром по ролям и исключением пользователей с уже связанным купоном
+     * AJAX: Поиск пользователей по email с фильтром по ролям
      */
     public function search_users_by_email() {
         check_ajax_referer('search_users_by_email', 'nonce');
@@ -307,7 +324,7 @@ class AmbassadorCouponProgram {
             wp_send_json_error(['message' => esc_html__('Недостаточно прав для выполнения действия.', 'brand-ambassador')]);
         }
 
-        $term = isset($_GET['term']) ? sanitize_text_field($_GET['term']) : '';
+        $term = isset($_GET['term']) ? sanitize_text_field(wp_unslash($_GET['term'])) : '';
 
         if (empty($term)) {
             wp_send_json_error(['message' => esc_html__('Введите email для поиска.', 'brand-ambassador')]);
@@ -320,18 +337,12 @@ class AmbassadorCouponProgram {
         // Указываем роли, которые нужно фильтровать
         $allowed_roles = [$blogger_role, $expert_role];
 
-        // Поиск пользователей с указанными ролями и исключение пользователей с уже связанным купоном
+        // Поиск пользователей с указанными ролями (без meta_query)
         $users = get_users([
             'search'         => '*' . esc_attr($term) . '*',
             'search_columns' => ['user_email', 'display_name'],
             'number'         => 10,
-            'role__in'       => $allowed_roles, // Фильтр по ролям из настроек
-            'meta_query'     => [ // Исключить пользователей с метаполем _branam_user_coupon
-                [
-                    'key'     => '_branam_user_coupon',
-                    'compare' => 'NOT EXISTS',
-                ],
-            ],
+            'role__in'       => $allowed_roles,
         ]);
 
         $results = [];
