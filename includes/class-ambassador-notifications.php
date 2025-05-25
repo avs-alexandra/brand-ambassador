@@ -121,7 +121,7 @@ class AmbassadorNotifications {
             '{description}'  => wp_kses_post(get_option('woocommerce_email_footer_text', __("Спасибо за использование нашего сервиса!", "brand-ambassador"))),
             '{site_title}'   => esc_html(get_bloginfo('name')),
             '{site_url}'     => esc_url(home_url()),
-            '{year}'         => esc_html(date('Y')),
+            '{year}'         => esc_html(gmdate('Y')),
             '{font_family}'  => esc_attr($email_font), // Применяем шрифт
         ]);
 
