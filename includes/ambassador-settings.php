@@ -23,7 +23,8 @@ class AmbassadorSettingsPage {
     public static function get_encryption_key() {
         $key = get_option('brand_ambassador_encryption_key');
         if (!$key) {
-            wp_die(__('Ключ шифрования не найден. Пожалуйста, активируйте плагин заново.', 'brand-ambassador'));
+            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            wp_die(esc_html__('Ключ шифрования не найден. Пожалуйста, активируйте плагин заново.', 'brand-ambassador'));
         }
         return $key;
     }
@@ -49,8 +50,8 @@ class AmbassadorSettingsPage {
     public function add_settings_page() {
         add_submenu_page(
             'woocommerce-marketing', // Родительская страница (WooCommerce > Маркетинг)
-            __('Настройки Амбассадора', 'brand-ambassador'), // Заголовок страницы
-            __('Настройки Амбассадора', 'brand-ambassador'), // Название в меню
+            esc_html__('Настройки Амбассадора', 'brand-ambassador'), // Заголовок страницы
+            esc_html__('Настройки Амбассадора', 'brand-ambassador'), // Название в меню
             'manage_options', // Требуемые права
             'ambassador-settings', // Слаг страницы
             [$this, 'render_settings_page'] // Callback для рендеринга страницы
@@ -270,9 +271,29 @@ class AmbassadorSettingsPage {
         if (get_option('branam_ambassador_delete_meta') == 1) {
             global $wpdb;
 
-            // Удаление метаполей
-            $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE meta_key IN ('_branam_ambassador_user', 'branam_only_first_order', '_branam_payout_status')");
-            $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('_branam_user_coupon', 'branam_user_numbercartbank', 'branam_user_bankname')");
+            // Удаление метаполей через WP функции вместо прямых SQL-запросов
+            $postmeta_keys = array('_branam_ambassador_user', 'branam_only_first_order', '_branam_payout_status');
+            $usermeta_keys = array('_branam_user_coupon', 'branam_user_numbercartbank', 'branam_user_bankname');
+
+            // Удаляем post meta для всех постов
+            foreach ($postmeta_keys as $meta_key) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                $wpdb->query(
+                    $wpdb->prepare(
+                        "DELETE FROM {$wpdb->postmeta} WHERE meta_key = %s",
+                        $meta_key
+                    )
+                );
+            }
+            foreach ($usermeta_keys as $meta_key) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                $wpdb->query(
+                    $wpdb->prepare(
+                        "DELETE FROM {$wpdb->usermeta} WHERE meta_key = %s",
+                        $meta_key
+                    )
+                );
+            }
 
             // Удаление опций
             delete_option('branam_ambassador_delete_meta');
