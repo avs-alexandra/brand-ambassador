@@ -29,15 +29,24 @@ function branam_apply_coupon_only_first_order_with_removal($discount, $discounti
 // Добавляем галочку "Только для первого заказа" в настройки купона.
 add_action('woocommerce_coupon_options', 'branam_add_coupon_option_first_order_checkbox');
 function branam_add_coupon_option_first_order_checkbox() {
+    // Добавляем nonce для сохранения чекбокса
+    wp_nonce_field('branam_save_coupon_option_first_order', 'branam_save_coupon_option_first_order_nonce');
     woocommerce_wp_checkbox([
         'id' => 'branam_only_first_order',
         'label' => __('Только для первого заказа', 'brand-ambassador'),
         'description' => __('Применять купон только к первому заказу пользователя.', 'brand-ambassador'),
     ]);
 }
-//Сохраняем значение галочки "Только для первого заказа".
+// Сохраняем значение галочки "Только для первого заказа".
 add_action('woocommerce_coupon_options_save', 'branam_save_coupon_option_first_order_checkbox');
 function branam_save_coupon_option_first_order_checkbox($post_id) {
+    // NONCE CHECK (WPCS: WordPress.Security.NonceVerification.Missing)
+    if (
+        ! isset( $_POST['branam_save_coupon_option_first_order_nonce'] ) ||
+        ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['branam_save_coupon_option_first_order_nonce'] ) ), 'branam_save_coupon_option_first_order' )
+    ) {
+        return;
+    }
     $only_first_order = isset($_POST['branam_only_first_order']) ? 'yes' : 'no';
     update_post_meta($post_id, 'branam_only_first_order', $only_first_order);
 }
@@ -66,8 +75,6 @@ function branam_get_user_coupon_name() {
     // Вернуть название купона
     return esc_html($coupon->post_title);
 }
-
-// Регистрация шорткода для вывода названия купона
 add_shortcode('user_coupon_name', 'branam_get_user_coupon_name');
 
 /**
@@ -113,7 +120,9 @@ add_shortcode('user_related_orders', function () {
     $related_coupon_code = strtolower($coupon->post_title);
 
     // Получение параметров месяца и года из $_GET
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended
     $month = isset($_GET['month']) ? absint($_GET['month']) : gmdate('m');
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended
     $year = isset($_GET['year']) ? absint($_GET['year']) : gmdate('Y');
 
     // Проверка диапазона месяца
@@ -173,7 +182,14 @@ add_shortcode('user_related_orders', function () {
     echo '</form>';
 
     /* translators: %1$s: месяц, %2$d: год */
-    echo '<h3 class="selected-month-year-title">' . esc_html(sprintf(__('Заказы со статусом выполнен* за %1$s %2$d:', 'brand-ambassador'), esc_html(date_i18n('F', mktime(0, 0, 0, $month, 10))), esc_html($year))) . '</h3>';
+    echo '<h3 class="selected-month-year-title">' . esc_html(
+        sprintf(
+            /* translators: %1$s: месяц, %2$d: год */
+            __('Заказы со статусом выполнен* за %1$s %2$d:', 'brand-ambassador'),
+            esc_html(date_i18n('F', mktime(0, 0, 0, $month, 10))),
+            esc_html($year)
+        )
+    ) . '</h3>';
 
     if (empty($orders_completed_ids)) {
         // Если заказов нет
@@ -187,27 +203,26 @@ add_shortcode('user_related_orders', function () {
             $order = wc_get_order($order_id);
             $used_coupons = $order->get_coupon_codes(); // Получаем применённые купоны
             $payout_status = get_post_meta($order->get_id(), '_branam_payout_status', true); // Получаем статус выплаты
+            /* translators: %1$d: номер заказа, %2$s: дата, %3$s: купон, %4$s: статус выплаты */
             $payout_label = $payout_status === 'paid' ? esc_html__('Вознаграждение выплачено', 'brand-ambassador') : esc_html__('Нет выплаты', 'brand-ambassador');
             
             foreach ($used_coupons as $coupon_code) {
-                if (strtolower($coupon_code) === $related_coupon_code) {
-                    // Если купон связан с текущим пользователем, добавляем заказ в вывод
-                    $order_count++;
-                    /* translators: %1$d: номер заказа, %2$s: дата, %3$s: купон, %4$s: статус выплаты */
-                    echo '<li>';
-                    echo esc_html(
-                        sprintf(
-                            /* translators: %1$d: номер заказа, %2$s: дата, %3$s: купон, %4$s: статус выплаты */
-                            __('№%1$d от %2$s c купоном: %3$s — %4$s', 'brand-ambassador'),
-                            (int) $order->get_id(),
-                            $order->get_date_created()->date_i18n(get_option('date_format')),
-                            $coupon_code,
-                            $payout_label
-                        )
-                    );
-                    echo '</li>';
-                }
-            }
+    if (strtolower($coupon_code) === $related_coupon_code) {
+        $order_count++;
+        echo '<li>';
+echo esc_html(
+    sprintf(
+        // translators: %1$d: номер заказа, %2$s: дата, %3$s: купон, %4$s: статус выплаты
+        __('№%1$d от %2$s c купоном: %3$s — %4$s', 'brand-ambassador'),
+        (int) $order->get_id(),
+        $order->get_date_created()->date_i18n(get_option('date_format')),
+        $coupon_code,
+        $payout_label
+    )
+);
+echo '</li>';
+    }
+}
         }
 
         echo '</ul>';
@@ -222,6 +237,7 @@ add_shortcode('user_related_orders', function () {
             /* translators: %1$s: месяц, %2$d: год, %3$d: кол-во заказов, %4$d: сумма за заказ, %5$d: итоговая сумма */
             echo '<p class="payout">' . esc_html(
                 sprintf(
+                    /* translators: %1$s: месяц, %2$d: год, %3$d: кол-во заказов, %4$d: сумма за заказ, %5$d: итоговая сумма */
                     __('Выплата за %1$s %2$d составит %3$d * %4$dруб = %5$dруб', 'brand-ambassador'),
                     date_i18n('F', mktime(0, 0, 0, $month, 10)),
                     $year,
@@ -249,10 +265,10 @@ add_shortcode('user_related_orders', function () {
 
             foreach ($used_coupons as $coupon_code) {
                 if (strtolower($coupon_code) === $related_coupon_code) {
-                    /* translators: %1$d: номер заказа, %2$s: дата, %3$s: статус */
                     echo '<li>';
                     echo esc_html(
                         sprintf(
+                            // translators: %1$d: номер заказа, %2$s: дата, %3$s: статус
                             __('№%1$d от %2$s, Статус: %3$s', 'brand-ambassador'),
                             (int) $order->get_id(),
                             $order->get_date_created()->date_i18n(get_option('date_format')),
@@ -273,7 +289,6 @@ add_shortcode('user_related_orders', function () {
 
     return ob_get_clean();
 });
-
 
 /**
  * Шорткод [user_total_orders] для вывода общего количества заказов и общей суммы комиссии за всё время.
@@ -348,13 +363,24 @@ add_shortcode('user_total_orders', function () {
     echo '<div class="user-total-orders">';
     echo '<h3 class="user-statistics-title">'. esc_html__('За весь период', 'brand-ambassador') . '</h3>';
     /* translators: %d: число заказов */
-    echo '<p>' . esc_html(sprintf(__('Всего заказов с вашим купоном: %d', 'brand-ambassador'), $order_count)) . '</p>';
+    echo '<p>' . esc_html(
+        sprintf(
+            /* translators: %d: число заказов */
+            __('Всего заказов с вашим купоном: %d', 'brand-ambassador'),
+            $order_count
+        )
+    ) . '</p>';
     /* translators: %d: сумма вознаграждения */
-    echo '<p>' . esc_html(sprintf(__('Общая сумма вознаграждения: %dруб', 'brand-ambassador'), $total_reward)) . '</p>';
+    echo '<p>' . esc_html(
+        sprintf(
+            /* translators: %d: сумма вознаграждения */
+            __('Общая сумма вознаграждения: %dруб', 'brand-ambassador'),
+            $total_reward
+        )
+    ) . '</p>';
     echo '</div>';
     return ob_get_clean();
 });
-
 
 /**
  * Регистрируем шорткод [ambassador_bank_form] для формы банковских данных
@@ -411,7 +437,7 @@ function branam_process_bank_data_form() {
         wp_die(esc_html__('Недостаточно прав для выполнения действия.', 'brand-ambassador'));
     }
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bank_data'])) {
+    if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bank_data'])) {
         if (
             !isset($_POST['bank_data_nonce']) ||
             !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['bank_data_nonce'])), 'save_bank_data')
@@ -441,7 +467,7 @@ function branam_process_bank_data_form() {
         exit;
     }
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_bank_data'])) {
+    if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_bank_data'])) {
         if (
             !isset($_POST['bank_data_nonce']) ||
             !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['bank_data_nonce'])), 'save_bank_data')
@@ -486,5 +512,9 @@ function branam_render_ambassador_card_number() {
     $last_four_digits = substr($card_number, -4);
 
     /* translators: %s: последние 4 цифры карты */
-    return '<div class="ambassador-card-number"><p>' . esc_html(sprintf(__('**** **** **** %s', 'brand-ambassador'), $last_four_digits)) . '</p></div>';
+    return '<div class="ambassador-card-number"><p>' . esc_html(sprintf(
+        /* translators: %s: последние 4 цифры карты */
+        __('**** **** **** %s', 'brand-ambassador'),
+        $last_four_digits
+    )) . '</p></div>';
 }
