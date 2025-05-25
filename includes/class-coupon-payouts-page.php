@@ -8,8 +8,8 @@ class CouponPayoutsPage {
     public function add_payouts_page() {
         add_submenu_page(
             'woocommerce-marketing', // Родительская страница
-            __('Выплаты по купонам', 'brand-ambassador'), // Заголовок страницы
-            __('Выплаты по купонам', 'brand-ambassador'), // Название в меню
+            esc_html__('Выплаты по купонам', 'brand-ambassador'), // Заголовок страницы
+            esc_html__('Выплаты по купонам', 'brand-ambassador'), // Название в меню
             'manage_woocommerce', // Разрешения
             'coupon-payouts', // Слаг страницы
             [$this, 'render_payouts_page'] // Callback для рендеринга страницы
@@ -48,7 +48,7 @@ class CouponPayoutsPage {
         $has_access = apply_filters('coupon_payouts_page_access', current_user_can('manage_woocommerce'));
 
         if (!$has_access) {
-            wp_die(__('У вас недостаточно прав для доступа к этой странице.', 'brand-ambassador'));
+            wp_die(esc_html__('У вас недостаточно прав для доступа к этой странице.', 'brand-ambassador'));
         }
         // Редирект, если параметры m и y отсутствуют
         if (!isset($_GET['m']) || !isset($_GET['y'])) {
@@ -78,9 +78,9 @@ class CouponPayoutsPage {
         // Получаем параметры из GET-запроса
         $month = isset($_GET['m']) ? absint($_GET['m']) : 0; // 0 = Все месяцы
         $year = isset($_GET['y']) ? absint($_GET['y']) : gmdate('Y');
-        $user_filter = isset($_GET['user']) ? sanitize_text_field($_GET['user']) : '';
-        $email_sort = isset($_GET['email_sort']) ? sanitize_text_field($_GET['email_sort']) : '';
-        $level_filter = isset($_GET['level']) ? sanitize_text_field($_GET['level']) : '';
+        $user_filter = isset($_GET['user']) ? sanitize_text_field(wp_unslash($_GET['user'])) : '';
+        $email_sort = isset($_GET['email_sort']) ? sanitize_text_field(wp_unslash($_GET['email_sort'])) : '';
+        $level_filter = isset($_GET['level']) ? sanitize_text_field(wp_unslash($_GET['level'])) : '';
 
         // Получаем минимальный год для фильтра
         $min_year = $this->get_minimum_order_year();
@@ -250,12 +250,14 @@ class CouponPayoutsPage {
             <!-- Проверяем, есть ли заказы -->
             <?php if (empty($orders)): ?>
                 <p style="margin-top: 20px; font-size: 16px; color: #555;">
-                    <?php echo esc_html(sprintf(__('Нет заказов за %1$s %2$d.', 'brand-ambassador'), $month > 0 ? date_i18n('F', mktime(0, 0, 0, $month, 10)) : esc_html__('все месяцы', 'brand-ambassador'), $year)); ?>
+                    <?php echo esc_html(sprintf(
+                        /* translators: 1: месяц, 2: год */
+                        __('Нет заказов за %1$s %2$d.', 'brand-ambassador'), $month > 0 ? date_i18n('F', mktime(0, 0, 0, $month, 10)) : esc_html__('все месяцы', 'brand-ambassador'), $year)); ?>
                 </p>
             <?php else: ?>
             
             <!-- Таблица -->
-                <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
+               <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
                     <input type="hidden" name="action" value="save_payout_status">
                     <input type="hidden" name="filters[m]" value="<?php echo esc_attr($month); ?>">
                     <input type="hidden" name="filters[y]" value="<?php echo esc_attr($year); ?>">
@@ -284,8 +286,8 @@ class CouponPayoutsPage {
                                     </td>
                                     <td><?php echo esc_html($order['order_id']); ?></td>
                                     <td><?php echo esc_html($order['date'] ? $order['date']->date_i18n(get_option('date_format')) : ''); ?></td>
-                                    <td><a href="<?php echo $order['coupon_edit_url']; ?>" target="_blank"><?php echo esc_html($order['coupon_code']); ?></a></td>
-                                    <td><?php echo $order['user_display']; ?></td>
+                                    <td><a href="<?php echo esc_url($order['coupon_edit_url']); ?>" target="_blank"><?php echo esc_html($order['coupon_code']); ?></a></td>
+                                    <td><?php echo wp_kses_post($order['user_display']); ?></td>
                                     <td><?php echo esc_html($order['role']); ?></td>
                                     <td><?php echo esc_html($order['reward']); ?> руб.</td>
                                     <td>
