@@ -407,22 +407,18 @@ function branam_process_bank_data_form() {
     $user_id = get_current_user_id();
 
     // Проверка прав пользователя
-    // Только сам пользователь или администратор может редактировать свои банковские данные
     if ( ! current_user_can( 'edit_user', $user_id ) ) {
         wp_die(esc_html__('Недостаточно прав для выполнения действия.', 'brand-ambassador'));
     }
 
-    // Проверка nonce для всех форм
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bank_data'])) {
         if (
             !isset($_POST['bank_data_nonce']) ||
             !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['bank_data_nonce'])), 'save_bank_data')
         ) {
             wp_die(esc_html__('Ошибка безопасности. Попробуйте снова.', 'brand-ambassador'));
         }
-    }
 
-    if (isset($_POST['submit_bank_data'])) {
         $card_number = '';
         $bank_name = '';
         if (isset($_POST['card_number'])) {
@@ -445,8 +441,14 @@ function branam_process_bank_data_form() {
         exit;
     }
 
-    if (isset($_POST['delete_bank_data'])) {
-        // nonce уже проверен выше
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_bank_data'])) {
+        if (
+            !isset($_POST['bank_data_nonce']) ||
+            !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['bank_data_nonce'])), 'save_bank_data')
+        ) {
+            wp_die(esc_html__('Ошибка безопасности. Попробуйте снова.', 'brand-ambassador'));
+        }
+
         // Удаляем мета-данные пользователя
         delete_user_meta($user_id, 'branam_user_numbercartbank');
         delete_user_meta($user_id, 'branam_user_bankname');
