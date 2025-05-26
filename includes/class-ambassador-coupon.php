@@ -11,6 +11,7 @@ class AmbassadorCouponProgram {
 
         // Подключение стилей и скриптов для Select2
         add_action('admin_enqueue_scripts', [$this, 'enqueue_select2_scripts']);
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_inline_coupon_js']);
 
         // AJAX обработчики
         add_action('wp_ajax_search_users_by_email', [$this, 'search_users_by_email']);
@@ -103,50 +104,105 @@ class AmbassadorCouponProgram {
                 <?php endif; ?>
             </p>
         </div>
-        <script>
-        jQuery(document).ready(function($) {
-            // Инициализация Select2
-            $('#ambassador_user').select2({
-                ajax: {
-                    url: ajaxurl,
-                    dataType: 'json',
-                    delay: 250,
-                    data: function(params) {
-                        return {
-                            action: 'search_users_by_email',
-                            term: params.term,
-                            nonce: '<?php echo esc_js( wp_create_nonce('search_users_by_email') ); ?>'
-                        };
-                    },
-                    processResults: function(data) {
-                        return {
-                            results: data.results
-                        };
-                    },
-                    cache: true
-                },
-                minimumInputLength: 2
-            });
-
-            // Кнопка "Отвязать пользователя"
-            $('.unlink-user-button').on('click', function() {
-                var couponId = $(this).data('coupon-id');
-                $.post(ajaxurl, {
-                    action: 'unlink_user_from_coupon',
-                    coupon_id: couponId,
-                    nonce: '<?php echo esc_js( wp_create_nonce('unlink_user_nonce') ); ?>'
-                }, function(response) {
-                    if (response.success) {
-                        alert('<?php esc_html_e('Пользователь отвязан от купона.', 'brand-ambassador'); ?>');
-                        location.reload();
-                    } else {
-                        alert('<?php esc_html_e('Ошибка при отвязке пользователя.', 'brand-ambassador'); ?>');
-                    }
-                });
-            });
-        });
-        </script>
         <?php
+        // JS вынесен в enqueue_inline_coupon_js
+    }
+
+    /**
+     * Подключение стилей и скриптов для Select2
+     */
+    public function enqueue_select2_scripts($hook) {
+        if (!in_array($hook, ['post.php', 'post-new.php'])) {
+            return;
+        }
+
+        $post_type = get_post_type();
+        if ($post_type !== 'shop_coupon') {
+            return;
+        }
+        // Локальное подключение!
+        wp_enqueue_script(
+            'select2',
+            plugin_dir_url(__DIR__) . '../assets/js/select2.min.js',
+            array('jquery'),
+            '4.1.0',
+            true
+        );
+        wp_enqueue_style(
+            'select2',
+            plugin_dir_url(__DIR__) . '../assets/css/select2.min.css',
+            array(),
+            '4.1.0'
+        );
+    }
+
+    /**
+     * Подключение инлайн-скрипта для поля амбассадора
+     */
+    public function enqueue_inline_coupon_js($hook) {
+        if (!in_array($hook, ['post.php', 'post-new.php'])) {
+            return;
+        }
+        $post_type = get_post_type();
+        if ($post_type !== 'shop_coupon') {
+            return;
+        }
+        global $post;
+        // Не выводим скрипт, если не передан объект $post
+        if (empty($post) || !isset($post->ID)) {
+            return;
+        }
+        // Генерируем JS инлайн-скрипт
+        $search_nonce = wp_create_nonce('search_users_by_email');
+        $unlink_nonce = wp_create_nonce('unlink_user_nonce');
+        $user_removed = esc_js(__('Пользователь отвязан от купона.', 'brand-ambassador'));
+        $user_remove_error = esc_js(__('Ошибка при отвязке пользователя.', 'brand-ambassador'));
+        ob_start();
+        ?>
+jQuery(document).ready(function($) {
+    // Инициализация Select2
+    $('#ambassador_user').select2({
+        ajax: {
+            url: ajaxurl,
+            dataType: 'json',
+            delay: 250,
+            data: function(params) {
+                return {
+                    action: 'search_users_by_email',
+                    term: params.term,
+                    nonce: '<?php echo $search_nonce; ?>'
+                };
+            },
+            processResults: function(data) {
+                return {
+                    results: data.results
+                };
+            },
+            cache: true
+        },
+        minimumInputLength: 2
+    });
+
+    // Кнопка "Отвязать пользователя"
+    $('.unlink-user-button').on('click', function() {
+        var couponId = $(this).data('coupon-id');
+        $.post(ajaxurl, {
+            action: 'unlink_user_from_coupon',
+            coupon_id: couponId,
+            nonce: '<?php echo $unlink_nonce; ?>'
+        }, function(response) {
+            if (response.success) {
+                alert('<?php echo $user_removed; ?>');
+                location.reload();
+            } else {
+                alert('<?php echo $user_remove_error; ?>');
+            }
+        });
+    });
+});
+        <?php
+        $js_code = ob_get_clean();
+        wp_add_inline_script('select2', $js_code);
     }
 
     /**
@@ -283,34 +339,6 @@ class AmbassadorCouponProgram {
                 update_user_meta($user_id, 'branam_user_bankname', sanitize_text_field(wp_unslash($_POST['branam_user_bankname'])));
             }
         }
-    }
-
-    /**
-     * Подключение стилей и скриптов для Select2
-     */
-    public function enqueue_select2_scripts($hook) {
-        if (!in_array($hook, ['post.php', 'post-new.php'])) {
-            return;
-        }
-
-        $post_type = get_post_type();
-        if ($post_type !== 'shop_coupon') {
-            return;
-        }
-        // Локальное подключение!
-        wp_enqueue_script(
-            'select2',
-            plugin_dir_url(__DIR__) . '../assets/js/select2.min.js',
-            array('jquery'),
-            '4.1.0',
-            true
-        );
-        wp_enqueue_style(
-            'select2',
-            plugin_dir_url(__DIR__) . '../assets/css/select2.min.css',
-            array(),
-            '4.1.0'
-        );
     }
 
     /**
