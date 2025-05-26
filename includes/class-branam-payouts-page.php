@@ -1,7 +1,7 @@
 <?php
 if (!defined('ABSPATH')) exit; // Запрет прямого доступа
 
-class CouponPayoutsPage {
+class Branam_Payouts_Page {
     /**
      * Добавляет страницу выплат
      */
@@ -11,7 +11,7 @@ class CouponPayoutsPage {
             esc_html__('Выплаты по купонам', 'brand-ambassador'), // Заголовок страницы
             esc_html__('Выплаты по купонам', 'brand-ambassador'), // Название в меню
             'manage_woocommerce', // Разрешения
-            'coupon-payouts', // Слаг страницы
+            'branam-coupon-payouts', // Слаг страницы (префиксирован!)
             [$this, 'render_payouts_page'] // Callback для рендеринга страницы
         );
     }
@@ -44,15 +44,15 @@ class CouponPayoutsPage {
      * Рендеринг страницы выплат
      */
     public function render_payouts_page() {
-        // Проверяем доступ через фильтр
-        $has_access = apply_filters('coupon_payouts_page_access', current_user_can('manage_woocommerce'));
+        // Проверяем доступ через фильтр (префикс!)
+        $has_access = apply_filters('branam_coupon_payouts_page_access', current_user_can('manage_woocommerce'));
 
         if (!$has_access) {
             wp_die(esc_html__('У вас недостаточно прав для доступа к этой странице.', 'brand-ambassador'));
         }
         // Редирект, если параметры m и y отсутствуют
         if (!isset($_GET['m']) || !isset($_GET['y'])) {
-            wp_safe_redirect(add_query_arg(['m' => 0, 'y' => gmdate('Y')], admin_url('admin.php?page=coupon-payouts')));
+            wp_safe_redirect(add_query_arg(['m' => 0, 'y' => gmdate('Y')], admin_url('admin.php?page=branam-coupon-payouts')));
             exit;
         }
         // Получаем результат расчёта из transient
@@ -207,7 +207,7 @@ class CouponPayoutsPage {
 
             <!-- Форма фильтрации -->
             <form method="get" class="filter-form">
-                <input type="hidden" name="page" value="coupon-payouts">
+                <input type="hidden" name="page" value="branam-coupon-payouts">
 
                 <label for="month"><?php esc_html_e('Месяц:', 'brand-ambassador'); ?></label>
                 <select id="month" name="m">
@@ -258,13 +258,13 @@ class CouponPayoutsPage {
             
             <!-- Таблица -->
                <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
-                    <input type="hidden" name="action" value="save_payout_status">
+                    <input type="hidden" name="action" value="branam_save_payout_status">
                     <input type="hidden" name="filters[m]" value="<?php echo esc_attr($month); ?>">
                     <input type="hidden" name="filters[y]" value="<?php echo esc_attr($year); ?>">
                     <input type="hidden" name="filters[user]" value="<?php echo esc_attr($user_filter); ?>">
                     <input type="hidden" name="filters[email_sort]" value="<?php echo esc_attr($email_sort); ?>">
                     <input type="hidden" name="filters[level]" value="<?php echo esc_attr($level_filter); ?>">
-                    <?php wp_nonce_field('save_payout_status', 'payout_status_nonce'); ?>
+                    <?php wp_nonce_field('branam_save_payout_status', 'branam_payout_status_nonce'); ?>
                      <table class="wp-list-table widefat fixed striped" style="margin-top: 20px;">
                         <thead>
                             <tr>
@@ -321,15 +321,19 @@ class CouponPayoutsPage {
     }
 
     /**
-     * Подключение JS для чекбоксов на странице выплат
-     */
-    public function enqueue_payouts_page_scripts($hook) {
-    if ($hook !== 'woocommerce-marketing_page_coupon-payouts' && $hook !== '%d0%bc%d0%b0%d1%80%d0%ba%d0%b5%d1%82%d0%b8%d0%bd%d0%b3_page_coupon-payouts') {
-    return;
+ * Подключение JS для чекбоксов на странице выплат с логированием
+ */
+public function enqueue_payouts_page_scripts($hook) {
+    $page_hooks = [
+        'woocommerce-marketing_page_branam-coupon-payouts',
+        '%d0%bc%d0%b0%d1%80%d0%ba%d0%b5%d1%82%d0%b8%d0%bd%d0%b3_page_branam-coupon-payouts' // кириллический вариант
+    ];
+    if (!in_array($hook, $page_hooks, true)) {
+        return;
     }
     wp_enqueue_script(
-        'coupon-payouts-js',
-        plugin_dir_url(dirname(__FILE__)) . 'assets/js/coupon-payouts.js',
+        'branam-coupon-payouts-js',
+        plugin_dir_url(dirname(__FILE__)) . 'assets/js/branam-coupon-payouts.js',
         [],
         '1.0.0',
         true
