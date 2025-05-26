@@ -48,32 +48,32 @@ ________________________________________________________________________________
 Добавьте шорткоды в личном кабинете пользователя и стилизуйте их на своё усмотрение.
 
 Шорткоды:
-<br>[user_coupon_name] - Купон Амбассадора
-<br>[user_related_orders] - Статистика заказов
-<br>[user_total_orders] - Общая статистика
-<br>[ambassador_bank_form] - Форма ввода банковской карты
-<br>[ambassador_card_number] - Отобразить последние 4 цифры номера карты, если карта уже добавлена
+<br>[branam_user_coupon_name] - Купон Амбассадора
+<br>[branam_user_related_orders] - Статистика заказов Амбассадора
+<br>[branam_user_total_orders] - Общая статистика Амбассадора
+<br>[branam_ambassador_bank_form] - Форма ввода банковской карты Амбассадора
+<br>[branam_ambassador_card_number] - Отобразить последние 4 цифры номера карты
 <br> Метаполе branam_user_bankname - название банка
 <br>Номера банковских карт шифруются для безопасности данных. ФЗ № 152-ФЗ "О персональных данных"
 
-<br>Например, для шорткода [user_related_orders], css код:
+<br>Например, для шорткода [branam_user_related_orders], css код:
 
 ```css
-selector .apply-buttons{background-color:#61C6CC;margin-top:10px;}
-selector .apply-buttons:hover{background-color:#5AB9BE;}
-selector .filter-select{border:2px solid #61C6CC;border-radius:10px;padding:8px 10px;width:230px;margin-top:2px;}
-selector .selected-month-year-title{font-weight:bold;margin-top:30px;margin-bottom:8px;}
-selector .payout{margin-top:16px;padding:10px 18px;background:#E5D4EF;border-radius:8px;font-size:15px;width:fit-content;}
-.user-related-orders ul{list-style-type:none;padding:0;margin:0px 0px;}
-.other-statuses-title{margin-top:20px;color:#989898;margin-bottom:8px;font-size:15px;}
-.other-statuses-list{color:#989898;font-size:14px;}
-.other-statuses-none{color:#989898;font-size:15px;margin-bottom:8px;}
-.user-related-orders ul li {
+selector .branam-apply-buttons{background-color:#61C6CC;margin-top:10px;}
+selector .branam-apply-buttons:hover{background-color:#5AB9BE;}
+selector .branam-filter-select{border:2px solid #61C6CC;border-radius:10px;padding:8px 10px;width:230px;margin-top:2px;}
+selector .branam-selected-month-year-title{font-weight:bold;margin-top:30px;margin-bottom:8px;}
+selector .branam-payout{margin-top:16px;padding:10px 18px;background:#E5D4EF;border-radius:8px;font-size:15px;width:fit-content;}
+.branam-user-related-orders ul{list-style-type:none;padding:0;margin:0px 0px;}
+.branam-other-statuses-title{margin-top:20px;color:#989898;margin-bottom:8px;font-size:15px;}
+.branam-other-statuses-list{color:#989898;font-size:14px;}
+.branam-other-statuses-none{color:#989898;font-size:15px;margin-bottom:8px;}
+.branam-user-related-orders ul li {
     border-bottom: 2px dotted #bbbbbb; 
     padding-top:4px;}
-.user-related-orders ul li:last-child {
+.branam-user-related-orders ul li:last-child {
     border-bottom: none;}
-.reward-note {font-size: 14px; color: #555;margin-top: 20px;}
+.branam-reward-note {font-size: 14px; color: #555;margin-top: 20px;}
 ```
 
 <img width="500" alt="Снимок экрана 2025-05-08 в 20 32 45" src="https://github.com/user-attachments/assets/0df15666-26b1-46a6-ae0f-5aca33acb857" />
@@ -102,8 +102,8 @@ ________________________________________________________________________________
 <br>Добавье сниппет-код:
 
 ```php
-//доступ к странице выплат по купонам
-add_filter('coupon_payouts_page_access', function($has_access) {
+// доступ к странице выплат по купонам
+add_filter('branam_coupon_payouts_page_access', function($has_access) {
     return current_user_can('administrator') || current_user_can('shop_manager');
 });
 ```
