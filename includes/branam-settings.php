@@ -1,7 +1,7 @@
 <?php
 if (!defined('ABSPATH')) exit; // Запрет прямого доступа
 
-class AmbassadorSettingsPage {
+class Branam_Settings_Page {
     public function __construct() {
         // Добавляем страницу настроек в меню "Маркетинг"
         add_action('admin_menu', [$this, 'add_settings_page']);
@@ -13,15 +13,15 @@ class AmbassadorSettingsPage {
 
     // Генерация и сохранение ключа шифрования
     public static function generate_encryption_key() {
-        if (!get_option('brand_ambassador_encryption_key')) {
+        if (!get_option('branam_encryption_key')) {
             $key = bin2hex(random_bytes(32)); // Генерация 256-битного ключа
-            add_option('brand_ambassador_encryption_key', $key);
+            add_option('branam_encryption_key', $key);
         }
     }
 
     // Получение ключа шифрования
     public static function get_encryption_key() {
-        $key = get_option('brand_ambassador_encryption_key');
+        $key = get_option('branam_encryption_key');
         if (!$key) {
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
             wp_die(esc_html__('Ключ шифрования не найден. Пожалуйста, активируйте плагин заново.', 'brand-ambassador'));
@@ -53,7 +53,7 @@ class AmbassadorSettingsPage {
             esc_html__('Настройки Амбассадора', 'brand-ambassador'), // Заголовок страницы
             esc_html__('Настройки Амбассадора', 'brand-ambassador'), // Название в меню
             'manage_options', // Требуемые права
-            'ambassador-settings', // Слаг страницы
+            'branam-settings', // Слаг страницы
             [$this, 'render_settings_page'] // Callback для рендеринга страницы
         );
     }
@@ -62,28 +62,28 @@ class AmbassadorSettingsPage {
      * Регистрируем настройки
      */
     public function register_settings() {
-        register_setting('ambassador_settings', 'branam_blogger_role', [
+        register_setting('branam_settings', 'branam_blogger_role', [
             'sanitize_callback' => [$this, 'validate_role'],
         ]);
-        register_setting('ambassador_settings', 'branam_expert_role', [
+        register_setting('branam_settings', 'branam_expert_role', [
             'sanitize_callback' => [$this, 'validate_role'],
         ]);
-        register_setting('ambassador_settings', 'branam_blogger_reward', [
+        register_setting('branam_settings', 'branam_blogger_reward', [
             'sanitize_callback' => 'absint', // Санитизация для чисел
         ]);
-        register_setting('ambassador_settings', 'branam_expert_reward', [
+        register_setting('branam_settings', 'branam_expert_reward', [
             'sanitize_callback' => 'absint', // Санитизация для чисел
         ]);
-        register_setting('ambassador_settings', 'branam_ambassador_delete_meta', [
+        register_setting('branam_settings', 'branam_delete_meta', [
             'sanitize_callback' => 'rest_sanitize_boolean', // Для чекбокса
         ]);
-        register_setting('ambassador_settings', 'branam_ambassador_email_subject', [
+        register_setting('branam_settings', 'branam_email_subject', [
             'sanitize_callback' => 'sanitize_text_field', // Санитизация для текста
         ]);
-        register_setting('ambassador_settings', 'branam_ambassador_email_template', [
+        register_setting('branam_settings', 'branam_email_template', [
             'sanitize_callback' => [self::class, 'sanitize_email_template'],
         ]);
-        register_setting('ambassador_settings', 'branam_ambassador_email_font', [
+        register_setting('branam_settings', 'branam_email_font', [
             'sanitize_callback' => 'sanitize_text_field', // Санитизация для текста
         ]);
     }
@@ -135,10 +135,10 @@ class AmbassadorSettingsPage {
         $expert_role = get_option('branam_expert_role', 'subscriber');
         $blogger_reward = get_option('branam_blogger_reward', 450);
         $expert_reward = get_option('branam_expert_reward', 600);
-        $delete_meta = get_option('branam_ambassador_delete_meta', 0);
-        $email_subject = get_option('branam_ambassador_email_subject', 'Ваш купон был использован!'); // Значение по умолчанию для темы письма
-        $email_template = get_option('branam_ambassador_email_template', 'Здравствуйте, [ambassador]! Ваш купон "[coupon]" был использован для заказа №[order_id].');
-        $email_font = get_option('branam_ambassador_email_font', 'Arial, sans-serif'); // Значение по умолчанию
+        $delete_meta = get_option('branam_delete_meta', 0);
+        $email_subject = get_option('branam_email_subject', 'Ваш купон был использован!'); // Значение по умолчанию для темы письма
+        $email_template = get_option('branam_email_template', 'Здравствуйте, [ambassador]! Ваш купон "[coupon]" был использован для заказа №[order_id].');
+        $email_font = get_option('branam_email_font', 'Arial, sans-serif'); // Значение по умолчанию
         ?>
         <div class="wrap">
             <h1><?php esc_html_e('Настройки Амбассадора бренда', 'brand-ambassador'); ?></h1>
@@ -149,15 +149,15 @@ class AmbassadorSettingsPage {
             </strong>
             </div>
             <form method="post" action="options.php">
-                <?php settings_fields('ambassador_settings'); ?>
-                <?php do_settings_sections('ambassador_settings'); ?>
+                <?php settings_fields('branam_settings'); ?>
+                <?php do_settings_sections('branam_settings'); ?>
                 <table class="form-table">
                     <!-- Добавлено уведомление -->
                     <tr>
                         <td colspan="2">
                             <p style="color: #000;">
                             <?php
-                                echo wp_kses_post(__('Шорткоды:<br>[user_coupon_name] - Купон Амбассадора <br>[user_related_orders] - Статистика заказов Амбассадора <br>[user_total_orders] - Общая статистика Амбассадора <br>[ambassador_bank_form] - Форма ввода банковской карты Амбассадора <br>[ambassador_card_number] - Отобразить последние 4 цифры номера карты', 'brand-ambassador'));
+                                echo wp_kses_post(__('Шорткоды:<br>[branam_user_coupon_name] - Купон Амбассадора <br>[branam_user_related_orders] - Статистика заказов Амбассадора <br>[branam_user_total_orders] - Общая статистика Амбассадора <br>[branam_ambassador_bank_form] - Форма ввода банковской карты Амбассадора <br>[branam_ambassador_card_number] - Отобразить последние 4 цифры номера карты', 'brand-ambassador'));
                             ?>
                             </p>
                             <p style="color: #646970;">
@@ -206,7 +206,7 @@ class AmbassadorSettingsPage {
                         <td>
                             <input
                                 type="text"
-                                name="branam_ambassador_email_subject"
+                                name="branam_email_subject"
                                 value="<?php echo esc_attr($email_subject); ?>"
                                 class="regular-text"
                             />
@@ -218,9 +218,9 @@ class AmbassadorSettingsPage {
                             <?php
                             wp_editor(
                                 $email_template,
-                                'branam_ambassador_email_template',
+                                'branam_email_template',
                                 [
-                                    'textarea_name' => 'branam_ambassador_email_template',
+                                    'textarea_name' => 'branam_email_template',
                                     'textarea_rows' => 10,
                                     'media_buttons' => true,
                                 ]
@@ -234,7 +234,7 @@ class AmbassadorSettingsPage {
                         <td>
                             <input
                                 type="text"
-                                name="branam_ambassador_email_font"
+                                name="branam_email_font"
                                 value="<?php echo esc_attr($email_font); ?>"
                                 class="regular-text"
                             />
@@ -244,8 +244,8 @@ class AmbassadorSettingsPage {
                     <tr valign="top">
                         <th scope="row"><?php esc_html_e('Перед удалением плагина', 'brand-ambassador'); ?></th>
                         <td>
-                            <input type="checkbox" name="branam_ambassador_delete_meta" value="1" <?php checked(1, $delete_meta, true); ?> />
-                            <label for="branam_ambassador_delete_meta">
+                            <input type="checkbox" name="branam_delete_meta" value="1" <?php checked(1, $delete_meta, true); ?> />
+                            <label for="branam_delete_meta">
                                 <?php esc_html_e('Удалить метаполя, которые создал плагин', 'brand-ambassador'); ?></label>
                                 <ul>
                                     <li><strong>_branam_ambassador_user</strong>: Связь между купоном и пользователем (ID пользователя).</li>
@@ -268,7 +268,7 @@ class AmbassadorSettingsPage {
      * Удаление данных плагина
      */
     public static function delete_plugin_data() {
-        if (get_option('branam_ambassador_delete_meta') == 1) {
+        if (get_option('branam_delete_meta') == 1) {
             global $wpdb;
 
             // Удаление метаполей через WP функции вместо прямых SQL-запросов
@@ -296,19 +296,19 @@ class AmbassadorSettingsPage {
             }
 
             // Удаление опций
-            delete_option('branam_ambassador_delete_meta');
+            delete_option('branam_delete_meta');
             delete_option('branam_blogger_role');
             delete_option('branam_expert_role');
             delete_option('branam_blogger_reward');
             delete_option('branam_expert_reward');
-            delete_option('branam_ambassador_email_subject');
-            delete_option('branam_ambassador_email_template');
-            delete_option('branam_ambassador_email_font');
-            delete_option('brand_ambassador_encryption_key'); // Удаление ключа шифрования
+            delete_option('branam_email_subject');
+            delete_option('branam_email_template');
+            delete_option('branam_email_font');
+            delete_option('branam_encryption_key'); // Удаление ключа шифрования
         }
     }
 }
 
 // Регистрация хуков активации и удаления — вне класса
-register_activation_hook(plugin_dir_path(__DIR__) . 'brand-ambassador.php', ['AmbassadorSettingsPage', 'generate_encryption_key']);
-register_uninstall_hook(plugin_dir_path(__DIR__) . 'brand-ambassador.php', ['AmbassadorSettingsPage', 'delete_plugin_data']);
+register_activation_hook(plugin_dir_path(__DIR__) . 'brand-ambassador.php', ['Branam_Settings_Page', 'generate_encryption_key']);
+register_uninstall_hook(plugin_dir_path(__DIR__) . 'brand-ambassador.php', ['Branam_Settings_Page', 'delete_plugin_data']);
