@@ -14,40 +14,40 @@ License: GPLv2 or later
 
 if (!defined('ABSPATH')) exit; // Запрет прямого доступа
 
-// Подключаем основной класс плагина
-require_once plugin_dir_path(__FILE__) . 'includes/class-ambassador-coupon.php';
+// Подключаем основной функционал купонов амбассадора
+require_once plugin_dir_path(__FILE__) . 'includes/class-branam-coupon-program.php';
 
 // Подключаем страницу настроек
-require_once plugin_dir_path(__FILE__) . 'includes/ambassador-settings.php';
+require_once plugin_dir_path(__FILE__) . 'includes/branam-settings.php';
 
 // Подключаем шорткоды и опцию в купоне только на первый заказ
-require_once plugin_dir_path(__FILE__) . 'includes/shortcodes.php';
+require_once plugin_dir_path(__FILE__) . 'includes/branam-shortcodes.php';
 
 // Подключаем обработчик выплат
-require_once plugin_dir_path(__FILE__) . 'includes/class-coupon-payouts-handler.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-branam-payouts-handler.php';
 
 // Подключаем страницу для админки в WooCommerce
-require_once plugin_dir_path(__FILE__) . 'includes/class-coupon-payouts-page.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-branam-payouts-page.php';
 
 // Подключаем класс уведомлений
-require_once plugin_dir_path(__FILE__) . 'includes/class-ambassador-notifications.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-branam-notifications.php';
 
 // Инициализация плагина
 function branam_initialize_brand_ambassador() {
     // Логика выплат
-    $payouts_handler = new CouponPayoutsHandler();
-    add_action('admin_post_save_payout_status', [$payouts_handler, 'save_payout_status']);
+    $payouts_handler = new Branam_Payouts_Handler();
+    add_action('admin_post_branam_save_payout_status', [$payouts_handler, 'save_payout_status']);
 
-    // Рендеринг админ-страницы
-    $payouts_page = new CouponPayoutsPage();
+    // Рендеринг админ-страницы выплат
+    $payouts_page = new Branam_Payouts_Page();
     $payouts_page->register_hooks();
     add_action('admin_menu', [$payouts_page, 'add_payouts_page']);
 
     // Основной функционал и настройки
-    new AmbassadorCouponProgram();
-    new AmbassadorSettingsPage(); // Страница настроек
+    new Branam_Coupon_Program();
+    new Branam_Settings_Page(); // Страница настроек
 
     // Уведомления
-    new AmbassadorNotifications(); // Уведомления для Амбассадоров
+    new Branam_Notifications(); // Уведомления для Амбассадоров
 }
 add_action('plugins_loaded', 'branam_initialize_brand_ambassador');
