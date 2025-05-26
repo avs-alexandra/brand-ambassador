@@ -40,6 +40,7 @@ function branam_initialize_brand_ambassador() {
 
     // Рендеринг админ-страницы
     $payouts_page = new CouponPayoutsPage();
+    $payouts_page->register_hooks();
     add_action('admin_menu', [$payouts_page, 'add_payouts_page']);
 
     // Основной функционал и настройки
