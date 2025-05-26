@@ -52,7 +52,7 @@ function branam_save_coupon_option_first_order_checkbox($post_id) {
 }
 
 /**
- * Шорткод [user_coupon_name] наименование купона в личный кабинет амбассадора бренда.
+ * Шорткод [branam_user_coupon_name] наименование купона в личный кабинет амбассадора бренда.
  */
 function branam_get_user_coupon_name() {
     $user_id = get_current_user_id(); // Получить ID текущего пользователя
@@ -75,12 +75,12 @@ function branam_get_user_coupon_name() {
     // Вернуть название купона
     return esc_html($coupon->post_title);
 }
-add_shortcode('user_coupon_name', 'branam_get_user_coupon_name');
+add_shortcode('branam_user_coupon_name', 'branam_get_user_coupon_name');
 
 /**
- * Шорткод [user_related_orders] для вывода заказов в личном кабинете амбассадора бренда.
+ * Шорткод [branam_user_related_orders] для вывода заказов в личном кабинете амбассадора бренда.
  */
-add_shortcode('user_related_orders', function () {
+add_shortcode('branam_user_related_orders', function () {
     // Получаем текущего пользователя
     $current_user = wp_get_current_user();
 
@@ -150,12 +150,12 @@ add_shortcode('user_related_orders', function () {
     // Формируем вывод
     ob_start();
 
-    echo '<div class="user-related-orders">';
+    echo '<div class="branam-user-related-orders">';
 
     // Форма для выбора месяца и года
-    echo '<form method="get" class="filter-form">';
+    echo '<form method="get" class="branam-filter-form">';
     echo '<label for="month">' . esc_html__('Месяц:', 'brand-ambassador') . '</label>';
-    echo '<select id="month" name="month" class="filter-select">';
+    echo '<select id="month" name="month" class="branam-filter-select">';
     for ($m = 1; $m <= 12; $m++) {
         echo sprintf(
             '<option value="%d" %s>%s</option>',
@@ -167,7 +167,7 @@ add_shortcode('user_related_orders', function () {
     echo '</select>';
 
     echo '<label for="year">' . esc_html__('Год:', 'brand-ambassador') . '</label>';
-    echo '<select id="year" name="year" class="filter-select">'; 
+    echo '<select id="year" name="year" class="branam-filter-select">';
     for ($y = gmdate('Y') - 1; $y <= gmdate('Y'); $y++) {
         echo sprintf(
             '<option value="%d" %s>%d</option>',
@@ -178,11 +178,11 @@ add_shortcode('user_related_orders', function () {
     }
     echo '</select>';
 
-    echo '<button type="submit" class="apply-buttons">' . esc_html__('Применить', 'brand-ambassador') . '</button>';
+    echo '<button type="submit" class="branam-apply-buttons">' . esc_html__('Применить', 'brand-ambassador') . '</button>';
     echo '</form>';
 
     /* translators: %1$s: месяц, %2$d: год */
-    echo '<h3 class="selected-month-year-title">' . esc_html(
+    echo '<h3 class="branam-selected-month-year-title">' . esc_html(
         sprintf(
             /* translators: %1$s: месяц, %2$d: год */
             __('Заказы со статусом выполнен* за %1$s %2$d:', 'brand-ambassador'),
@@ -205,24 +205,24 @@ add_shortcode('user_related_orders', function () {
             $payout_status = get_post_meta($order->get_id(), '_branam_payout_status', true); // Получаем статус выплаты
             /* translators: %1$d: номер заказа, %2$s: дата, %3$s: купон, %4$s: статус выплаты */
             $payout_label = $payout_status === 'paid' ? esc_html__('Вознаграждение выплачено', 'brand-ambassador') : esc_html__('Нет выплаты', 'brand-ambassador');
-            
+
             foreach ($used_coupons as $coupon_code) {
-    if (strtolower($coupon_code) === $related_coupon_code) {
-        $order_count++;
-        echo '<li>';
-echo esc_html(
-    sprintf(
-        // translators: %1$d: номер заказа, %2$s: дата, %3$s: купон, %4$s: статус выплаты
-        __('№%1$d от %2$s c купоном: %3$s — %4$s', 'brand-ambassador'),
-        (int) $order->get_id(),
-        $order->get_date_created()->date_i18n(get_option('date_format')),
-        $coupon_code,
-        $payout_label
-    )
-);
-echo '</li>';
-    }
-}
+                if (strtolower($coupon_code) === $related_coupon_code) {
+                    $order_count++;
+                    echo '<li>';
+                    echo esc_html(
+                        sprintf(
+                            // translators: %1$d: номер заказа, %2$s: дата, %3$s: купон, %4$s: статус выплаты
+                            __('№%1$d от %2$s c купоном: %3$s — %4$s', 'brand-ambassador'),
+                            (int) $order->get_id(),
+                            $order->get_date_created()->date_i18n(get_option('date_format')),
+                            $coupon_code,
+                            $payout_label
+                        )
+                    );
+                    echo '</li>';
+                }
+            }
         }
 
         echo '</ul>';
@@ -235,7 +235,7 @@ echo '</li>';
             $total_reward = $order_count * $reward_per_order;
 
             /* translators: %1$s: месяц, %2$d: год, %3$d: кол-во заказов, %4$d: сумма за заказ, %5$d: итоговая сумма */
-            echo '<p class="payout">' . esc_html(
+            echo '<p class="branam-payout">' . esc_html(
                 sprintf(
                     /* translators: %1$s: месяц, %2$d: год, %3$d: кол-во заказов, %4$d: сумма за заказ, %5$d: итоговая сумма */
                     __('Выплата за %1$s %2$d составит %3$d * %4$dруб = %5$dруб', 'brand-ambassador'),
@@ -250,14 +250,14 @@ echo '</li>';
     }
 
     // Заголовок для заказов с другими статусами
-    echo '<p class="other-statuses-title">' . esc_html__('Посмотреть заказы в статусе: обработка, доставка, отменён, выполнен', 'brand-ambassador') . '</p>';
+    echo '<p class="branam-other-statuses-title">' . esc_html__('Посмотреть заказы в статусе: обработка, доставка, отменён, выполнен', 'brand-ambassador') . '</p>';
 
     if (empty($orders_other_statuses_ids)) {
         // Если заказов с другими статусами нет
-        echo '<p class="other-statuses-none">' . esc_html__('Нет заказов с другими статусами за выбранный период.', 'brand-ambassador') . '</p>';
+        echo '<p class="branam-other-statuses-none">' . esc_html__('Нет заказов с другими статусами за выбранный период.', 'brand-ambassador') . '</p>';
     } else {
         // Если заказы с другими статусами найдены
-        echo '<ul class="other-statuses-list">';
+        echo '<ul class="branam-other-statuses-list">';
 
         foreach ($orders_other_statuses_ids as $order_id) {
             $order = wc_get_order($order_id);
@@ -283,7 +283,7 @@ echo '</li>';
         echo '</ul>';
     }
     // Добавляем финальную строчку с классом
-    echo '<p class="reward-note">' . esc_html__('*Вознаграждение начисляется только за выполненные заказы.', 'brand-ambassador') . '</p>';
+    echo '<p class="branam-reward-note">' . esc_html__('*Вознаграждение начисляется только за выполненные заказы.', 'brand-ambassador') . '</p>';
 
     echo '</div>';
 
@@ -291,9 +291,9 @@ echo '</li>';
 });
 
 /**
- * Шорткод [user_total_orders] для вывода общего количества заказов и общей суммы комиссии за всё время.
+ * Шорткод [branam_user_total_orders] для вывода общего количества заказов и общей суммы комиссии за всё время.
  */
-add_shortcode('user_total_orders', function () {
+add_shortcode('branam_user_total_orders', function () {
     // Получаем текущего пользователя
     $current_user = wp_get_current_user();
 
@@ -360,8 +360,8 @@ add_shortcode('user_total_orders', function () {
     // Формируем вывод
     ob_start();
 
-    echo '<div class="user-total-orders">';
-    echo '<h3 class="user-statistics-title">'. esc_html__('За весь период', 'brand-ambassador') . '</h3>';
+    echo '<div class="branam-user-total-orders">';
+    echo '<h3 class="branam-user-statistics-title">'. esc_html__('За весь период', 'brand-ambassador') . '</h3>';
     /* translators: %d: число заказов */
     echo '<p>' . esc_html(
         sprintf(
@@ -383,9 +383,9 @@ add_shortcode('user_total_orders', function () {
 });
 
 /**
- * Регистрируем шорткод [ambassador_bank_form] для формы банковских данных
+ * Регистрируем шорткод [branam_ambassador_bank_form] для формы банковских данных
  */
-add_shortcode('ambassador_bank_form', 'branam_render_bank_data_form');
+add_shortcode('branam_ambassador_bank_form', 'branam_render_bank_data_form');
 
 function branam_render_bank_data_form() {
     if (!is_user_logged_in()) {
@@ -396,27 +396,27 @@ function branam_render_bank_data_form() {
     $encrypted_card_number = get_user_meta($user_id, 'branam_user_numbercartbank', true);
     $bank_name = get_user_meta($user_id, 'branam_user_bankname', true);
 
-    $card_number = !empty($encrypted_card_number) ? AmbassadorSettingsPage::decrypt_data($encrypted_card_number) : '';
+    $card_number = !empty($encrypted_card_number) ? Branam_Settings_Page::decrypt_data($encrypted_card_number) : '';
     $masked_card_number = !empty($card_number) ? str_repeat('*', strlen($card_number) - 4) . substr($card_number, -4) : '';
 
     ob_start();
     ?>
     <form method="post" action="">
-        <?php wp_nonce_field('save_bank_data', 'bank_data_nonce'); ?>
+        <?php wp_nonce_field('branam_save_bank_data', 'branam_bank_data_nonce'); ?>
         <p>
-            <label for="card_number" class="header-formbank"><?php esc_html_e('Номер банковской карты', 'brand-ambassador'); ?></label><br>
-            <input type="text" name="card_number" id="card_number" class="input-bank" placeholder="0000 0000 0000 0000" value="<?php echo esc_attr($masked_card_number); ?>" maxlength="16" required />
+            <label for="branam_card_number" class="branam-header-formbank"><?php esc_html_e('Номер банковской карты', 'brand-ambassador'); ?></label><br>
+            <input type="text" name="branam_card_number" id="branam_card_number" class="branam-input-bank" placeholder="0000 0000 0000 0000" value="<?php echo esc_attr($masked_card_number); ?>" maxlength="16" required />
         </p>
         <p>
-            <label for="bank_name" class="header-formbank"><?php esc_html_e('Наименование банка', 'brand-ambassador'); ?></label><br>
-            <input type="text" name="bank_name" id="bank_name" class="input-bank" placeholder="сбер" value="<?php echo esc_attr($bank_name); ?>" required />
+            <label for="branam_bank_name" class="branam-header-formbank"><?php esc_html_e('Наименование банка', 'brand-ambassador'); ?></label><br>
+            <input type="text" name="branam_bank_name" id="branam_bank_name" class="branam-input-bank" placeholder="сбер" value="<?php echo esc_attr($bank_name); ?>" required />
         </p>
         <p>
-            <button type="submit" name="submit_bank_data" class="button button-save"><?php esc_html_e('Сохранить', 'brand-ambassador'); ?></button>
+            <button type="submit" name="branam_submit_bank_data" class="button branam-button-save"><?php esc_html_e('Сохранить', 'brand-ambassador'); ?></button>
         </p>
         <?php if (!empty($encrypted_card_number)) : ?>
             <p>
-                <button type="submit" name="delete_bank_data" class="button deleted-bank"><?php esc_html_e('Удалить данные карты', 'brand-ambassador'); ?></button>
+                <button type="submit" name="branam_delete_bank_data" class="button branam-deleted-bank"><?php esc_html_e('Удалить данные карты', 'brand-ambassador'); ?></button>
             </p>
         <?php endif; ?>
     </form>
@@ -437,21 +437,21 @@ function branam_process_bank_data_form() {
         wp_die(esc_html__('Недостаточно прав для выполнения действия.', 'brand-ambassador'));
     }
 
-    if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_bank_data'])) {
+    if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['branam_submit_bank_data'])) {
         if (
-            !isset($_POST['bank_data_nonce']) ||
-            !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['bank_data_nonce'])), 'save_bank_data')
+            !isset($_POST['branam_bank_data_nonce']) ||
+            !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['branam_bank_data_nonce'])), 'branam_save_bank_data')
         ) {
             wp_die(esc_html__('Ошибка безопасности. Попробуйте снова.', 'brand-ambassador'));
         }
 
         $card_number = '';
         $bank_name = '';
-        if (isset($_POST['card_number'])) {
-            $card_number = sanitize_text_field(wp_unslash($_POST['card_number']));
+        if (isset($_POST['branam_card_number'])) {
+            $card_number = sanitize_text_field(wp_unslash($_POST['branam_card_number']));
         }
-        if (isset($_POST['bank_name'])) {
-            $bank_name = sanitize_text_field(wp_unslash($_POST['bank_name']));
+        if (isset($_POST['branam_bank_name'])) {
+            $bank_name = sanitize_text_field(wp_unslash($_POST['branam_bank_name']));
         }
 
         if (!preg_match('/^\d{16}$/', $card_number)) {
@@ -459,7 +459,7 @@ function branam_process_bank_data_form() {
         }
 
         // Используем статический вызов функции encrypt_data
-        $encrypted_card_number = AmbassadorSettingsPage::encrypt_data($card_number);
+        $encrypted_card_number = Branam_Settings_Page::encrypt_data($card_number);
         update_user_meta($user_id, 'branam_user_numbercartbank', $encrypted_card_number);
         update_user_meta($user_id, 'branam_user_bankname', $bank_name);
 
@@ -467,10 +467,10 @@ function branam_process_bank_data_form() {
         exit;
     }
 
-    if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_bank_data'])) {
+    if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['branam_delete_bank_data'])) {
         if (
-            !isset($_POST['bank_data_nonce']) ||
-            !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['bank_data_nonce'])), 'save_bank_data')
+            !isset($_POST['branam_bank_data_nonce']) ||
+            !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['branam_bank_data_nonce'])), 'branam_save_bank_data')
         ) {
             wp_die(esc_html__('Ошибка безопасности. Попробуйте снова.', 'brand-ambassador'));
         }
@@ -485,9 +485,9 @@ function branam_process_bank_data_form() {
 }
 
 /**
- * Шорткод [ambassador_card_number] для вывода последних 4 цифр банковской карты.
+ * Шорткод [branam_ambassador_card_number] для вывода последних 4 цифр банковской карты.
  */
-add_shortcode('ambassador_card_number', 'branam_render_ambassador_card_number');
+add_shortcode('branam_ambassador_card_number', 'branam_render_ambassador_card_number');
 
 function branam_render_ambassador_card_number() {
     if (!is_user_logged_in()) {
@@ -502,7 +502,7 @@ function branam_render_ambassador_card_number() {
     }
 
     // Расшифровываем номер карты
-    $card_number = AmbassadorSettingsPage::decrypt_data($encrypted_card_number);
+    $card_number = Branam_Settings_Page::decrypt_data($encrypted_card_number);
 
     if (empty($card_number)) {
         return ''; // Если номер карты пустой после расшифровки, ничего не выводим
@@ -512,7 +512,7 @@ function branam_render_ambassador_card_number() {
     $last_four_digits = substr($card_number, -4);
 
     /* translators: %s: последние 4 цифры карты */
-    return '<div class="ambassador-card-number"><p>' . esc_html(sprintf(
+    return '<div class="branam-ambassador-card-number"><p>' . esc_html(sprintf(
         /* translators: %s: последние 4 цифры карты */
         __('**** **** **** %s', 'brand-ambassador'),
         $last_four_digits
