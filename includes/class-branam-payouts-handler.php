@@ -1,18 +1,19 @@
 <?php
 if (!defined('ABSPATH')) exit; // Запрет прямого доступа
 
-class CouponPayoutsHandler {
+class Branam_Payouts_Handler {
     /**
      * Обрабатывает сохранение статуса выплат и расчёт суммы выплат
      */
     public function save_payout_status() {
         // 1. Проверка nonce
         if (
-            !isset($_POST['payout_status_nonce']) ||
-            !wp_verify_nonce(
-                sanitize_text_field(wp_unslash($_POST['payout_status_nonce'])),
-                'save_payout_status'
-            )
+    !isset($_POST['branam_payout_status_nonce']) ||
+    !wp_verify_nonce(
+        sanitize_text_field(wp_unslash($_POST['branam_payout_status_nonce'])),
+        'branam_save_payout_status'
+    )
+
         ) {
             wp_die(esc_html__('Ошибка безопасности. Попробуйте снова.', 'brand-ambassador'));
         }
@@ -82,7 +83,7 @@ class CouponPayoutsHandler {
         }
 
         // Перенаправление обратно на страницу выплат с сохранением фильтров
-        $redirect_url = admin_url('admin.php?page=coupon-payouts');
+        $redirect_url = admin_url('admin.php?page=branam-coupon-payouts');
         if (!empty($_POST['filters'])) {
             $redirect_url .= '&' . http_build_query(array_map('sanitize_text_field', wp_unslash($_POST['filters'])));
         }
@@ -162,7 +163,7 @@ class CouponPayoutsHandler {
 
         // Расшифровка номера карты
         $encrypted_card_number = get_user_meta($user->ID, 'branam_user_numbercartbank', true);
-        $decrypted_card_number = !empty($encrypted_card_number) ? AmbassadorSettingsPage::decrypt_data($encrypted_card_number) : esc_html__('Не указан', 'brand-ambassador');
+        $decrypted_card_number = !empty($encrypted_card_number) ? Branam_Settings_Page::decrypt_data($encrypted_card_number) : esc_html__('Не указан', 'brand-ambassador');
 
         // translators: 1: месяц, 2: год, 3: имя, 4: email, 5: кол-во заказов, 6: сумма за заказ, 7: сумма итого, 8: уровень, 9: номер карты, 10: банк
         return [
