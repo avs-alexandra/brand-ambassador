@@ -310,27 +310,36 @@ class CouponPayoutsPage {
                             <?php esc_html_e('Отменить выплату', 'brand-ambassador'); ?>
                         </button>
                         
-                        <button type="button" class="button button-secondary" style="background-color: #6c757d; border-color: #6c757d; color: #fff;" onclick="window.location.reload();">
+                        <button type="button" class="button button-secondary" style="background-color: #6c757d; border-color: #6c757d; color: #fff;" onclick="window.location.reload();" id="cancel-selection">
                         <?php esc_html_e('Отменить выбор', 'brand-ambassador'); ?>
                     </button>
                     <?php endif; ?>
                 </form>
             <?php endif; ?>
         </div>
-
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                const selectAllCheckbox = document.getElementById('select-all');
-                if (selectAllCheckbox) {
-                    selectAllCheckbox.addEventListener('change', function () {
-                        const isChecked = this.checked;
-                        document.querySelectorAll('.row-checkbox').forEach(function (checkbox) {
-                            checkbox.checked = isChecked;
-                        });
-                    });
-                }
-            });
-        </script>
         <?php
+    }
+
+    /**
+     * Подключение JS для чекбоксов на странице выплат
+     */
+    public function enqueue_payouts_page_scripts($hook) {
+    if ($hook !== 'woocommerce-marketing_page_coupon-payouts' && $hook !== '%d0%bc%d0%b0%d1%80%d0%ba%d0%b5%d1%82%d0%b8%d0%bd%d0%b3_page_coupon-payouts') {
+    return;
+    }
+    wp_enqueue_script(
+        'coupon-payouts-js',
+        plugin_dir_url(dirname(__FILE__)) . 'assets/js/coupon-payouts.js',
+        [],
+        '1.0.0',
+        true
+    );
+}
+
+    /**
+     * Регистрируем хуки для enqueue скриптов
+     */
+    public function register_hooks() {
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_payouts_page_scripts']);
     }
 }
