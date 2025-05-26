@@ -166,7 +166,7 @@ jQuery(document).ready(function($) {
                 return {
                     action: 'branam_search_users_by_email',
                     term: params.term,
-                    nonce: '<?php echo $search_nonce; ?>'
+                    nonce: '<?php echo esc_js($search_nonce); ?>'
                 };
             },
             processResults: function(data) {
@@ -185,20 +185,20 @@ jQuery(document).ready(function($) {
         $.post(ajaxurl, {
             action: 'branam_unlink_user_from_coupon',
             coupon_id: couponId,
-            nonce: '<?php echo $unlink_nonce; ?>'
+            nonce: '<?php echo esc_js($unlink_nonce); ?>'
         }, function(response) {
             if (response.success) {
-                alert('<?php echo $user_removed; ?>');
+                alert('<?php echo esc_js($user_removed); ?>');
                 location.reload();
             } else {
-                alert('<?php echo $user_remove_error; ?>');
+                alert('<?php echo esc_js($user_remove_error); ?>');
             }
         });
     });
 });
-        <?php
-        $js_code = ob_get_clean();
-        wp_add_inline_script('select2', $js_code);
+<?php
+$js_code = ob_get_clean();
+wp_add_inline_script('select2', $js_code);
     }
 
     /**
