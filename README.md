@@ -1,9 +1,8 @@
 # brand-ambassador
 ## Амбассадор бренда для Woocommerce
 
-<img width="200" alt="icon-256x256" src="https://github.com/user-attachments/assets/6d32c1e7-0081-4be6-a011-2b9a0dfc4f51" />
+<img width="180" alt="icon-256x256" src="https://github.com/user-attachments/assets/6d32c1e7-0081-4be6-a011-2b9a0dfc4f51" />
 
-![icon-256x256 (1)](https://github.com/user-attachments/assets/6d32c1e7-0081-4be6-a011-2b9a0dfc4f51)
 
 ## <a href="https://wordpress.org/plugins/brand-ambassador/">Плагин на Wordpress</a>
 
