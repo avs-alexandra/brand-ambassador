@@ -4,7 +4,7 @@ Tags: woocommerce, coupons, ambassador, affiliate
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -84,12 +84,18 @@ add_filter('branam_coupon_payouts_page_access', function($has_access) {
 ```
 
 == Changelog ==
+= 1.0.1 =
+* Исправление мелких ошибок.
+
 = 1.0.0 =
 * Первая версия плагина.
 * Добавлены шорткоды и логика управления купонами.
 * Реализована страница выплат в админке.
 
 == Upgrade Notice ==
+= 1.0.1 =
+* Рекомендуется обновить для исправления мелких ошибок.
+
 = 1.0.0 =
 * Обновите до последней версии для полного функционала.
 
