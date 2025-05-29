@@ -51,3 +51,11 @@ function branam_initialize_brand_ambassador() {
     new Branam_Notifications(); // Уведомления для Амбассадоров
 }
 add_action('plugins_loaded', 'branam_initialize_brand_ambassador');
+// Кнопка "Настройки" 
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'branam_add_settings_link');
+function branam_add_settings_link($links) {
+    $settings_url = admin_url('admin.php?page=branam-settings');
+    $settings_link = '<a href="' . esc_url($settings_url) . '">' . esc_html__('Настройки', 'brand-ambassador') . '</a>';
+    array_unshift($links, $settings_link);
+    return $links;
+}
