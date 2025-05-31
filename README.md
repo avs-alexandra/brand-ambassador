@@ -4,7 +4,7 @@
 <img width="180" alt="icon-256x256" src="https://github.com/user-attachments/assets/6d32c1e7-0081-4be6-a011-2b9a0dfc4f51" />
 
 
-## <a href="https://wordpress.org/plugins/brand-ambassador/">Плагин на Wordpress</a>
+## <a href="https://wordpress.org/plugins/brand-ambassador/">Скачать этот плагин на Wordpress</a>
 
 Лёгкий, но функциональный плагин для программы Амбассадор бренда для Woocommerce.
 <br>Суть: компания приглашает к сотрудничеству Амбассадоров бренда и предоставляет личный купон. 
