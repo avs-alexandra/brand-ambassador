@@ -38,11 +38,19 @@ class Branam_Settings_Page {
     }
 
     // Функция дешифрования данных
-    public static function decrypt_data($encrypted_data) {
-        $key = self::get_encryption_key();
-        list($encrypted_data, $iv) = explode('::', base64_decode($encrypted_data), 2);
-        return openssl_decrypt($encrypted_data, 'aes-256-cbc', $key, 0, $iv);
+   public static function decrypt_data($encrypted_data) {
+    $key = self::get_encryption_key();
+    $decoded = base64_decode($encrypted_data);
+    $parts = explode('::', $decoded, 2);
+    if (count($parts) !== 2) {
+        return false; // Неправильный формат
     }
+    list($encrypted, $iv) = $parts;
+    if (empty($iv)) {
+        return false; // Нет IV — дешифровать нельзя
+    }
+    return openssl_decrypt($encrypted, 'aes-256-cbc', $key, 0, $iv);
+}
 
     /**
      * Добавляем страницу настроек в меню "Маркетинг"
