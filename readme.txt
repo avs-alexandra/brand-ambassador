@@ -2,9 +2,9 @@
 Contributors: avsalexandra
 Tags: woocommerce, coupons, ambassador, affiliate
 Requires at least: 5.0
-Tested up to: 6.8
+Tested up to: 6.9.1
 Requires PHP: 7.4
-Stable tag: 1.0.2
+Stable tag: 1.0.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -83,7 +83,47 @@ add_filter('branam_coupon_payouts_page_access', function($has_access) {
 });
 ```
 
+= В шорткодах не верно отображаются последние заказы у Амбассадора [branam_user_related_orders] и [branam_user_total_orders] =
+Это из-за кеша в 30 минут. Данные обновятся через 30 минут, но Вы можете вручную сбросить кеш.
+Добавьте сниппет код:
+
+```php
+add_action('init', function () {
+    if ( ! is_user_logged_in() || ! current_user_can('manage_options') ) {
+        return;
+    }
+
+    // Открой /?branam_flush=1 будучи админом
+    if ( isset($_GET['branam_flush']) && (int) $_GET['branam_flush'] === 1 ) {
+        global $wpdb;
+
+        // Удаляем transients, начинающиеся с branam_
+        // (В options они хранятся как _transient_{key})
+        $wpdb->query(
+            "DELETE FROM {$wpdb->options}
+             WHERE option_name LIKE '\_transient\_branam\_%'
+                OR option_name LIKE '\_transient\_timeout\_branam\_%'"
+        );
+    }
+});
+```
+
+И перейдите по ссылке https://ВАШ-САЙТ.ru/?branam_flush=1
+Далее удалите сниппет!
+
 == Changelog ==
+= 1.0.4 =
+* Удалена таблица в шорткоде [branam_user_related_orders] с выводом заказов у Амбассадора со статусами в обработке, доставке и т.д. То есть будет выводится только таблица со статусом выполнен.
+
+= 1.0.3 =
+* Оптимизирована страница выплат: данные берутся из таблиц WooCommerce wc_order_stats и wc_order_coupon_lookup (быстрее на больших магазинах).
+* Добавлена пагинация на странице выплат.
+* Шорткоды статистики амбассадора оптимизированы и кешируются (снижение нагрузки на БД).
+* Статус выплаты (_branam_payout_status) переведён на хранение в метаданных заказа через WooCommerce API (совместимо с HPOS).
+* Исправлена отправка email-уведомлений амбассадору: письмо отправляется один раз в статусе выполнен (нет дублей при повторной смене статуса).
+* Исправлено уведомление "Только для первого заказа"
+* Исправлено: банковская карта амбассадора больше не затирается при сохранении профиля пользователя в админке.
+
 = 1.0.2 =
 * Исправление шифрование данных карты, если не введено значение.
 
@@ -96,6 +136,13 @@ add_filter('branam_coupon_payouts_page_access', function($has_access) {
 * Реализована страница выплат в админке.
 
 == Upgrade Notice ==
+
+= 1.0.4 =
+* Рекомендуется обновить для исправления мелких ошибок.
+
+= 1.0.3 =
+* Важно: обновление оптимизирует работу с выплатами, улучшает производительность и добавляет пагинацию. Обновите для повышения стабильности!
+
 = 1.0.2 =
 * Рекомендуется обновить для исправления мелких ошибок.
 
